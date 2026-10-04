@@ -6,7 +6,9 @@ from app.main import PROFILES
 from app.evidence import analyze, decide_state
 from app.schemas import CheckRequest
 
-samples = json.loads((Path(__file__).parent / "samples.json").read_text())
+samples = []
+for f in sorted(Path(__file__).parent.glob("samples*.json")):
+    samples += json.loads(f.read_text())
 rows, fails = [], []
 for s in samples:
     es = analyze(CheckRequest(business_id="demo_bakery", thread=s["thread"]), PROFILES["demo_bakery"])

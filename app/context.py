@@ -2,6 +2,7 @@
 Runs locally on the un-redacted text; raw account numbers never go to the LLM."""
 from __future__ import annotations
 import json, re
+from email.utils import parseaddr
 from pathlib import Path
 from .schemas import BusinessProfile, MessageInput, Supplier
 from . import rules
@@ -17,9 +18,16 @@ def load_profiles() -> dict[str, BusinessProfile]:
 
 def _digits(s: str) -> str: return re.sub(r"\D", "", s)
 
+def parse_sender(sender: str | None):
+    """'ABC Flour <x@gmail.com>' -> ('abc flour', 'x@gmail.com', 'gmail.com'). Phones return empty domain."""
+    name, addr = parseaddr(sender or "")
+    addr = addr.strip().lower()
+    dom = addr.split("@")[-1] if "@" in addr else ""
+    return name.strip().lower(), addr, dom
+
 def match_supplier(msg: MessageInput, prof: BusinessProfile) -> Supplier | None:
-    text = f"{msg.claimed_entity or ''} {msg.text}".lower()
-    dom = (msg.sender or "").split("@")[-1].lower() if msg.sender and "@" in msg.sender else ""
+    dname, _, dom = parse_sender(msg.sender)
+    text = f"{msg.claimed_entity or ''} {dname} {msg.text}".lower()
     for s in prof.suppliers:
         names = [s.name.lower(), *[a.lower() for a in s.aliases]]
         if any(n in text for n in names) or (dom and rules.host_allowed(dom, s.known_domains)):
@@ -33,18 +41,29 @@ def check_message_context(msg: MessageInput, prof: BusinessProfile):
     """returns (supplier, hits, positives); hits use the same tuple shape as rules.Hit."""
     hits, positives = [], []
     sup = match_supplier(msg, prof)
+    dname0, addr0, dom0 = parse_sender(msg.sender)
+    if dom0 and dname0:
+        for b in rules.BUILTIN_BRANDS + prof.trusted_brands:
+            if b.name.lower() in dname0 and not rules.host_allowed(dom0, b.domains):
+                hits.append(("CTX_DISPLAY_NAME_SPOOF", f"The name says '{b.name}' but the address belongs to {dom0}.", addr0, ", ".join(b.domains)))
+                break
     if sup is None:
         if claims_existing_relationship(msg.text):
             hits.append(("CTX_UNKNOWN_SUPPLIER", "No supplier in your records matches this sender or name.", msg.claimed_entity or msg.sender, None))
         return None, hits, positives
 
     # sender identity
-    if msg.sender and "@" in msg.sender:
-        dom = msg.sender.split("@")[-1].lower()
+    dname, addr, dom = parse_sender(msg.sender)
+    if dom:
         if rules.host_allowed(dom, sup.known_domains):
             positives.append(f"Sender domain {dom} matches {sup.name}'s known domain")
         else:
-            hits.append(("CTX_DOMAIN_MISMATCH", f"Email is not from a domain you have used with {sup.name}.", dom, ", ".join(sup.known_domains)))
+            names = [sup.name.lower(), *[a.lower() for a in sup.aliases]]
+            if dname and any(n in dname for n in names):
+                extra = " This is a free email service." if dom in rules.FREEMAIL else ""
+                hits.append(("CTX_DISPLAY_NAME_SPOOF", f"The name says '{sup.name}' but the address belongs to {dom}.{extra}", addr, ", ".join(sup.known_domains)))
+            else:
+                hits.append(("CTX_DOMAIN_MISMATCH", f"Email is not from a domain you have used with {sup.name}.", dom, ", ".join(sup.known_domains)))
     elif msg.sender and sup.known_phones:
         if _digits(msg.sender)[-9:] in {_digits(p)[-9:] for p in sup.known_phones}:
             positives.append(f"Sender phone matches {sup.name}'s saved number")

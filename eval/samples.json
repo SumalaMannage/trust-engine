@@ -38,5 +38,8 @@
  {"id":"X01","category":"payment_slip","label":"scam","expect":["VERIFY","STOP"],"needs_extraction":true,"note":"Slip image: total mismatch, no reference ID. Needs Gemini image reading (Day 3-5).",
   "thread":[{"kind":"message","text":"[image] Payment slip: no reference number, total LKR 120,000 but items add to 102,000","channel":"whatsapp"}]},
  {"id":"X02","category":"payment_slip","label":"scam","expect":["VERIFY","STOP"],"needs_extraction":true,"note":"Slip image with a future date. Needs Gemini image reading.",
-  "thread":[{"kind":"message","text":"[image] Payment slip dated 2027-01-05, amount LKR 60,000","channel":"whatsapp"}]}
+  "thread":[{"kind":"message","text":"[image] Payment slip dated 2027-01-05, amount LKR 60,000","channel":"whatsapp"}]},
+ {"id":"N01","category":"phishing","label":"scam","expect":["VERIFY","STOP"],"note":"Password-protected PDF lure, password given in the body",
+  "thread":[{"kind":"message","text":"Hi, Please find the attached document from Ghman Group for your review. \n PDF Password:GhmanGroup12 \n Kindly review and contact me if you have any questions. \n Thank You, Annnalize Proctor","channel":"email","attachment_names":["Ghoman Group.pdf"]}]}
+
 ]

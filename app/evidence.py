@@ -38,7 +38,7 @@ def analyze(req: CheckRequest, prof: BusinessProfile) -> EvidenceSet:
             if not inbound:
                 if rules.REFUSAL.search(item.text): declined_at.append(i)
                 continue
-            hits += rules.check_message_text(item.text)
+            hits += rules.check_message_text(item.text, bool(item.attachment_names))
             new_content = bool(rules.URGENCY.search(item.text) and rules.PAYMENT.search(item.text))
             for u in rules.extract_urls(item.text):
                 if u not in seen_urls:

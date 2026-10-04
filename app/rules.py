@@ -26,6 +26,10 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "OVERPAYMENT":          (S.high,     30, G.pressure,  "Classic overpayment / refund-the-difference pattern"),
     "BANK_CHANGE_CUE":      (S.medium,   15, G.pressure,  "Asks you to use new bank details"),
     "INJECTION":            (S.high,     30, G.lure,      "Message tries to manipulate AI checkers"),
+    "DEVICE_CODE_LURE":     (S.high,     45, G.fake_page, "Asks you to enter a code on a login page (device-code phishing)"),
+    "ACTIVE_CONTENT_ATTACHMENT": (S.high, 30, G.payload,  "Web-page style attachment can hide a redirect or fake login"),
+    "PROTECTED_ATTACHMENT_LURE": (S.high, 30, G.payload,  "Attachment password supplied in the message (hides it from scanners)"),
+    "CTX_DISPLAY_NAME_SPOOF": (S.high,   35, G.lure,      "Display name says one thing, email address says another"),
     "CTX_NEW_ACCOUNT":      (S.high,     35, G.pressure,  "Bank account never used with this supplier"),
     "CTX_DOMAIN_MISMATCH":  (S.high,     30, G.lure,      "Sender domain differs from the supplier's known domain"),
     "CTX_PHONE_MISMATCH":   (S.medium,   15, G.lure,      "Sender phone differs from the supplier's known number"),
@@ -41,6 +45,8 @@ RULES: dict[str, tuple[S, int, G, str]] = {
 RISKY_EXT = {"vbs","vbe","js","jse","wsf","wsh","exe","scr","bat","cmd","com","lnk","iso","img",
              "msi","ps1","hta","jar","dll","docm","xlsm","pif"}
 ARCHIVE_EXT = {"zip","rar","7z","gz","tar"}
+ACTIVE_EXT = {"html","htm","shtml","xhtml","svg","url","one"}
+FREEMAIL = {"gmail.com","yahoo.com","outlook.com","hotmail.com","live.com","icloud.com","proton.me","protonmail.com","mail.com","aol.com"}
 DOC_EXT = {"pdf","doc","docx","xls","xlsx","jpg","jpeg","png","txt","ppt","pptx","csv"}
 EXEC_MIME = {"application/x-msdownload","application/x-dosexec","application/x-msdos-program",
              "application/vbscript","text/vbscript","application/x-sh","application/hta"}
@@ -59,7 +65,10 @@ BUILTIN_BRANDS = [
 
 URGENCY = re.compile(r"\b(urgent(ly)?|immediately|asap|right now|today only|within \d+ ?(hours?|minutes?|hrs?|mins?)|last warning|final notice|before the bank closes|as soon as possible)\b", re.I)
 PAYMENT = re.compile(r"\b(pay|payment|transfer|deposit|send (the )?money|bank account|remit|advance|fee|settle)\b", re.I)
-CREDENTIAL = re.compile(r"\b(otp|one[- ]time (code|password)|password|pin number|verify your account|login details|credentials)\b", re.I)
+CREDENTIAL = re.compile(r"((send|share|give|tell|provide|enter|confirm|reply with|type)\s+(?:\w+\s+){0,2}(password|passcode|pin( number)?|otp|one[- ]time (code|password))|verify your account|login details|credentials)", re.I)
+PWD_SUPPLIED = re.compile(r"\b(?:(?:pdf|zip|file|archive|document|attachment)\s+)?(?:password|passcode)\s*(?:is|:|=)\s*\S+", re.I)
+DEVICE_LOGIN = re.compile(r"(microsoft\.com/devicelogin|microsoft\.com/link|login\.microsoftonline\.com/\S*deviceauth|aka\.ms/devicelogin|google\.com/device|github\.com/login/device|device ?code)", re.I)
+ENTER_CODE = re.compile(r"enter (this|the|your|that) (\w+ )?code", re.I)
 INSTALLER = re.compile(r"(update (adobe|reader|acrobat|your viewer)|install (to|the|a|our) [\w ]{0,25}(join|view|open|meeting|viewer|plugin)|download (to|the) (view|open|join)|plugin required|viewer (is )?(outdated|required)|update required to (view|open))", re.I)
 BANK_CHANGE = re.compile(r"((changed|new|updated|change of) (our )?(bank|account)|bank (details|account)( has| have)? (changed|updated)|use (this|the) new account)", re.I)
 CHANNEL = re.compile(r"((continue|chat|talk|message|text|reach) (me )?(on|via|through) (whatsapp|telegram|signal)|add me on (whatsapp|telegram|signal))", re.I)
@@ -164,13 +173,15 @@ def check_file(name: str, mime: str | None = None, purpose: str | None = None) -
         hits.append(("FILE_DOUBLE_EXT", f"Looks like a .{parts[-2]} but the real type is .{ext}.", name, f".{parts[-2]}"))
     elif ext in RISKY_EXT:
         hits.append(("FILE_RISKY_EXT", f".{ext} files can run programs on your computer. Do not open.", name, None))
+    elif ext in ACTIVE_EXT:
+        hits.append(("ACTIVE_CONTENT_ATTACHMENT", f".{ext} files open like web pages and can silently redirect you to a fake login.", name, None))
     elif ext in ARCHIVE_EXT:
         hits.append(("FILE_ARCHIVE", "Archives are often used to hide scripts and executables.", name, None))
     if purpose and (ext in RISKY_EXT or (mime or "").lower() in EXEC_MIME) and re.search(r"(document|invoice|pdf|brief|requirements|meeting|photo|image|receipt|slip|order)", purpose, re.I):
         hits.append(("FILE_PURPOSE_MISMATCH", f"Described as '{purpose}' but the file is executable content.", name, purpose))
     return hits
 
-def check_message_text(text: str) -> list[Hit]:
+def check_message_text(text: str, has_attachment: bool = False) -> list[Hit]:
     hits: list[Hit] = []
     urgency = URGENCY.search(text)
     money = PAYMENT.search(text)
@@ -186,6 +197,12 @@ def check_message_text(text: str) -> list[Hit]:
     if m: hits.append(("OVERPAYMENT", "Scammers 'overpay' with a fake payment, then ask for the difference back.", m.group(0), None))
     m = BANK_CHANGE.search(text)
     if m: hits.append(("BANK_CHANGE_CUE", "Bank-detail changes are the most common way invoice fraud works.", m.group(0), None))
+    dl = DEVICE_LOGIN.search(text)
+    if dl and (ENTER_CODE.search(text) or re.search(r"device ?code|\b[A-Z0-9]{3,5}-[A-Z0-9]{3,5}\b", text)):
+        hits.append(("DEVICE_CODE_LURE", "Entering a code someone else gives you on a real login page can hand them access to your account.", dl.group(0), None))
+    pw = PWD_SUPPLIED.search(text)
+    if pw and (has_attachment or re.search(r"attach", text, re.I)):
+        hits.append(("PROTECTED_ATTACHMENT_LURE", "Scammers lock files with a password so email scanners cannot look inside.", pw.group(0), None))
     m = INJECTION.search(text)
     if m: hits.append(("INJECTION", "Text aimed at AI tools is a strong red flag on its own.", m.group(0).strip(), None))
     return hits

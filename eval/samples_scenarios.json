@@ -1,0 +1,269 @@
+[
+ {
+  "id": "D01",
+  "category": "device_code",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Device-code lure pointing to the REAL Microsoft login page",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi, the shared proposal is ready. To open it, go to https://microsoft.com/devicelogin and enter the code ABCD-1234 to verify your device. The code expires in 15 minutes.",
+    "channel": "email",
+    "sender": "documents@sharefile-review.example"
+   }
+  ]
+ },
+ {
+  "id": "D02",
+  "category": "device_code",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Device code disguised as a meeting sign-in",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Join our call at 3pm. To confirm your identity, sign in at https://www.microsoft.com/link and enter this code: QWE-4567. Please do it now, the host is waiting.",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "D03",
+  "category": "html_attachment",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "HTML attachment from unknown sender (carries redirect code)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Please review the attached remittance advice for your records.",
+    "channel": "email",
+    "sender": "payments@remit-notice.example",
+    "attachment_names": [
+     "Remittance_Advice.html"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D04",
+  "category": "html_attachment",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "SVG 'voice message' attachment",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "You have received a new voice message. Open the attachment to listen.",
+    "channel": "email",
+    "sender": "noreply@voicemail-alerts.example",
+    "attachment_names": [
+     "VoiceMsg_0412.svg"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D05",
+  "category": "protected_attachment",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Password-protected zip, password given in the body (hides it from scanners)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Documents attached. Archive password: 4471. Please open today and confirm receipt.",
+    "channel": "email",
+    "sender": "admin@docs-transfer.example",
+    "attachment_names": [
+     "Documents.zip"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D06",
+  "category": "display_name_spoof",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Display name matches supplier, address is a free-mail account",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi, please settle this month's invoice of LKR 110,000 today. Thanks.",
+    "channel": "email",
+    "sender": "ABC Flour <abcflour.accounts@gmail.com>"
+   }
+  ]
+ },
+ {
+  "id": "D07",
+  "category": "compromised_supplier",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Real supplier domain (mailbox possibly hacked), new bank account",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Please note our bank has changed effective today. Use account 777788889999 for the invoice of LKR 105,000.",
+    "channel": "email",
+    "sender": "accounts@abcflour.example",
+    "claimed_entity": "ABC Flour"
+   }
+  ]
+ },
+ {
+  "id": "D08",
+  "category": "hijacked_thread",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Normal invoice thread, then a reply that quietly swaps the account",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Invoice for September flour, LKR 98,000. Pay to account 100200308231 as usual.",
+    "channel": "email",
+    "sender": "accounts@abcflour.example",
+    "claimed_entity": "ABC Flour"
+   },
+   {
+    "kind": "message",
+    "text": "Thanks, noted.",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Sorry, please ignore the previous account. Use account 777788889999 instead, the old one is closed.",
+    "channel": "email",
+    "sender": "accounts@abcflour.example",
+    "claimed_entity": "ABC Flour"
+   }
+  ]
+ },
+ {
+  "id": "D09",
+  "category": "legit",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "Genuine Teams meeting link (must not be flagged)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Meeting tomorrow at 10am. Join: https://teams.microsoft.com/l/meetup-join/abc123",
+    "channel": "email"
+   }
+  ]
+ },
+ {
+  "id": "D10",
+  "category": "legit",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "Genuine subscription notice on the real Microsoft domain",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Your Microsoft 365 subscription renews on 5 November. Manage it at https://account.microsoft.com",
+    "channel": "email"
+   }
+  ]
+ },
+ {
+  "id": "D11",
+  "category": "header_spoof",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "needs_extraction": true,
+  "note": "Needs the planned header-analysis feature (From and Reply-To domains differ, DKIM fail)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "From: accounts@abcflour.example\nReply-To: accounts@abcflour-support.example\nAuthentication-Results: dkim=fail; spf=softfail\nPlease update bank details.",
+    "channel": "email"
+   }
+  ]
+ },
+ {
+  "id": "D12",
+  "category": "legit",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "Genuine one-time-code SMS (must not be flagged as a credential request)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Your one-time code is 482910. Do not share it with anyone.",
+    "channel": "sms"
+   }
+  ]
+ },
+ {
+  "id": "D13",
+  "category": "display_name_spoof",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Bank name in display name, free-mail address",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Please review your statement.",
+    "channel": "email",
+    "sender": "Lanka Test Bank <statements.ltb@gmail.com>"
+   }
+  ]
+ },
+ {
+  "id": "D14",
+  "category": "legit",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "Supplier writing with display name AND the right domain",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Invoice for this month's flour, LKR 98,000. Same account as usual: 100200308231.",
+    "channel": "email",
+    "sender": "ABC Flour <accounts@abcflour.example>"
+   }
+  ]
+ }
+]
