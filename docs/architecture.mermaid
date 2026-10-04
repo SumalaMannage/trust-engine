@@ -1,0 +1,28 @@
+flowchart TD
+    subgraph IN["Input interfaces (stateless: client sends the thread)"]
+        U["URL"] --- M["Message / thread"] --- F["File name, MIME, claimed purpose"]
+    end
+    IN --> V["Validate + cap size<br/>(Pydantic, FastAPI on Cloud Run)"]
+    V --> LOCAL
+
+    subgraph LOCAL["Runs locally on raw text. Nothing leaves here un-redacted"]
+        direction TB
+        D["1. Deterministic layer<br/>URL lookalike / punycode / IP / shortener<br/>risky + double extensions<br/>fake-installer, urgency, overpayment<br/>injection patterns"]
+        C["2. Business Context layer<br/>supplier domain + phone<br/>known bank accounts<br/>normal amount range, usual channel<br/>owner approval threshold"]
+        BP[("Business Profile<br/>(suppliers, accounts, brands)<br/>Firestore or JSON")]
+        BP -.-> C
+        D --> E
+        C --> E
+        E["3. Evidence Correlation Engine<br/>per-message state, kill-chain stage<br/>escalation after refusal<br/>cross-signal rules, weighted score"]
+    end
+
+    E --> ES[("Evidence Set (JSON)<br/>every item has an id, rule, observed vs expected")]
+    ES --> ST{{"Deterministic verdict<br/>SAFE / VERIFY / STOP<br/>FINAL: the LLM cannot change it"}}
+    ES --> RED["Redact PII<br/>fence thread as UNTRUSTED DATA"]
+    RED --> G["4. AI reasoning layer<br/>Gemini on Vertex AI<br/>structured output"]
+    G --> GUARD{"Guardrails<br/>schema valid?<br/>cites real evidence ids?<br/>no overclaiming safety?"}
+    GUARD -- pass --> OUT
+    GUARD -- fail, retry once --> TPL["Template explanation<br/>(deterministic fallback)"]
+    TPL --> OUT
+    ST --> OUT["Trust Decision<br/>state, headline, plain-English why,<br/>actions, evidence list, kill-chain stage"]
+    OUT --> UI["Verdict card / Chrome extension / WhatsApp-forward bot"]

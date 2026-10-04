@@ -1,0 +1,24 @@
+{
+  "business_id": "demo_bakery",
+  "name": "Nimali's Cakes (fictional)",
+  "currency": "LKR",
+  "owner_approval_threshold": 200000,
+  "approved_tools": ["Zoom", "WhatsApp", "Google Meet"],
+  "suppliers": [
+    {
+      "id": "sup_flour",
+      "name": "ABC Flour",
+      "aliases": ["ABC Flour Ltd"],
+      "known_domains": ["abcflour.example"],
+      "known_phones": ["0771234567"],
+      "accounts": [{"number": "100200308231", "bank": "Lanka Test Bank", "first_used": "2022-03-01", "payments_made": 42}],
+      "typical_amount_min": 50000,
+      "typical_amount_max": 150000,
+      "usual_channels": ["email", "phone"],
+      "relationship_since": "2022-03"
+    }
+  ],
+  "trusted_brands": [
+    {"name": "Lanka Test Bank", "keyword": "ltbank", "domains": ["ltbank.example"], "category": "bank"}
+  ]
+}

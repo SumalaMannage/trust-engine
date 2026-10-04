@@ -1,0 +1,93 @@
+"""Layer 3: Evidence Correlation Engine.
+Runs the rule layers over an ordered thread, tracks state (kill-chain stage, escalation),
+adds correlation findings, scores, and emits one structured EvidenceSet."""
+from __future__ import annotations
+from collections import Counter
+from . import rules
+from .context import check_message_context
+from .schemas import (BusinessProfile, CheckRequest, Evidence, EvidenceSet, FileInput,
+                      MessageInput, Severity, Stage, UrlInput)
+
+STAGE_ORDER = [Stage.none, Stage.lure, Stage.fake_page, Stage.payload, Stage.pressure]
+MAX_HITS_PER_RULE = 2          # stops one repeated signal from flooding the score
+INFO_LAYER = {"CTX": "context", "COR": "correlation"}
+
+def analyze(req: CheckRequest, prof: BusinessProfile) -> EvidenceSet:
+    brands = rules.BUILTIN_BRANDS + prof.trusted_brands
+    ev: list[Evidence] = []
+    positives: list[str] = []
+    matched: str | None = None
+    declined_at: list[int] = []        # indexes of owner replies that refused something
+    seen_urls: set[str] = set()
+    escalated = False
+
+    def add(rule_id: str, detail: str, observed, expected, idx: int | None):
+        sev, weight, stage, title = rules.RULES[rule_id]
+        layer = INFO_LAYER.get(rule_id[:3], "deterministic")
+        ev.append(Evidence(id=f"E{len(ev)+1}", layer=layer, rule_id=rule_id, severity=sev, title=title,
+                           detail=detail, observed=None if observed is None else str(observed)[:200],
+                           expected=None if expected is None else str(expected)[:200],
+                           weight=weight, stage=stage, thread_index=idx))
+
+    for i, item in enumerate(req.thread):
+        inbound = item.direction == "inbound"
+        hits: list[rules.Hit] = []
+        new_content = False   # did this inbound item bring urgency / a new link / a new file?
+
+        if isinstance(item, MessageInput):
+            if not inbound:
+                if rules.REFUSAL.search(item.text): declined_at.append(i)
+                continue
+            hits += rules.check_message_text(item.text)
+            new_content = bool(rules.URGENCY.search(item.text) and rules.PAYMENT.search(item.text))
+            for u in rules.extract_urls(item.text):
+                if u not in seen_urls:
+                    seen_urls.add(u); new_content = True; hits += rules.check_url(u, brands)
+            for fn in item.attachment_names:
+                new_content = True; hits += rules.check_file(fn)
+            sup, ctx_hits, pos = check_message_context(item, prof)
+            hits += ctx_hits; positives += pos
+            matched = matched or (sup.name if sup else None)
+        elif isinstance(item, UrlInput) and inbound:
+            if item.url not in seen_urls:
+                seen_urls.add(item.url); new_content = True; hits += rules.check_url(item.url, brands)
+        elif isinstance(item, FileInput) and inbound:
+            new_content = True; hits += rules.check_file(item.filename, item.mime_type, item.claimed_purpose)
+
+        for rid, detail, obs, exp in hits:
+            add(rid, detail, obs, exp, i)
+
+        # ---- escalation: owner declined earlier, and this inbound item pushes harder ----
+        if inbound and new_content and any(d < i for d in declined_at) and not escalated:
+            escalated = True
+            add("COR_ESCALATION", "After you said no or offered a safer option, the sender added urgency, a new link or a new file.",
+                f"message {i+1}", None, i)
+
+    # ---- cross-signal correlation ----
+    ids = Counter(e.rule_id for e in ev)
+    if (ids["BANK_CHANGE_CUE"] or ids["CTX_NEW_ACCOUNT"]) and (
+            ids["CTX_DOMAIN_MISMATCH"] or ids["CTX_PHONE_MISMATCH"] or ids["CTX_UNUSUAL_CHANNEL"]
+            or ids["URGENCY_PAYMENT"] or ids["CTX_AMOUNT_ANOMALY"]):
+        add("COR_PAYMENT_REDIRECT", "A change of payment destination combined with other anomalies is the signature of supplier-impersonation fraud.", None, None, None)
+    stages = {e.stage for e in ev if e.stage != Stage.none and e.layer != "correlation"}
+    if len(stages) >= 3:
+        add("COR_CAMPAIGN", f"This conversation touches {len(stages)} stages of an attack, not one isolated problem.", ", ".join(sorted(s.value for s in stages)), None, None)
+
+    # ---- score: cap repeats, clamp 0-100 ----
+    per_rule: Counter = Counter(); score = 0
+    for e in ev:
+        per_rule[e.rule_id] += 1
+        if per_rule[e.rule_id] <= MAX_HITS_PER_RULE: score += e.weight
+    score = min(score, 100)
+
+    reached = max((e.stage for e in ev), key=STAGE_ORDER.index, default=Stage.none)
+    return EvidenceSet(business_id=req.business_id, evidence=ev, positives=list(dict.fromkeys(positives)),
+                       score=score, kill_chain_stage=reached, escalation_detected=escalated,
+                       injection_attempt_detected=bool(ids["INJECTION"]), supplier_matched=matched)
+
+def decide_state(es: EvidenceSet):
+    """Deterministic and final. The LLM can never lower or change this."""
+    from .schemas import TrustState
+    if any(e.severity == Severity.critical for e in es.evidence) or es.score >= 60: return TrustState.STOP
+    if es.score >= 25 or any(e.severity == Severity.high for e in es.evidence): return TrustState.VERIFY
+    return TrustState.SAFE
