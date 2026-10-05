@@ -18,6 +18,14 @@ L05,legit_thread,legit,SAFE,SAFE,0,PASS
 X01,payment_slip,scam,VERIFY/STOP,SAFE,0,SKIP
 X02,payment_slip,scam,VERIFY/STOP,SAFE,0,SKIP
 N01,phishing,scam,VERIFY/STOP,VERIFY,30,PASS
+I01,payment_slip,scam,VERIFY/STOP,VERIFY,50,PASS
+I02,payment_slip,scam,VERIFY/STOP,VERIFY,30,PASS
+I03,payment_slip,scam,VERIFY/STOP,VERIFY,40,PASS
+I04,legit_slip,legit,SAFE,SAFE,0,PASS
+I05,injection,scam,VERIFY/STOP,VERIFY,30,PASS
+I06,unreadable,scam,VERIFY/STOP,VERIFY,25,PASS
+I07,legit_screenshot,legit,SAFE,SAFE,0,PASS
+I08,bank_change,scam,STOP,STOP,100,PASS
 D01,device_code,scam,VERIFY/STOP,VERIFY,45,PASS
 D02,device_code,scam,VERIFY/STOP,VERIFY,45,PASS
 D03,html_attachment,scam,VERIFY/STOP,VERIFY,30,PASS

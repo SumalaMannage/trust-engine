@@ -2,8 +2,9 @@
 All weights/severities live in RULES so they are easy to explain and tune."""
 from __future__ import annotations
 import re
+from datetime import date
 from urllib.parse import urlparse
-from .schemas import Severity as S, Stage as G, TrustedBrand
+from .schemas import ImageFacts, Severity as S, Stage as G, TrustedBrand
 
 # rule_id: (severity, weight, stage, title)
 RULES: dict[str, tuple[S, int, G, str]] = {
@@ -30,6 +31,12 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "ACTIVE_CONTENT_ATTACHMENT": (S.high, 30, G.payload,  "Web-page style attachment can hide a redirect or fake login"),
     "PROTECTED_ATTACHMENT_LURE": (S.high, 30, G.payload,  "Attachment password supplied in the message (hides it from scanners)"),
     "CTX_DISPLAY_NAME_SPOOF": (S.high,   35, G.lure,      "Display name says one thing, email address says another"),
+    "SLIP_NO_REFERENCE":    (S.medium,   20, G.pressure,  "Payment slip has no reference or transaction ID"),
+    "SLIP_FUTURE_DATE":     (S.high,     30, G.pressure,  "Payment slip is dated in the future"),
+    "SLIP_ARITHMETIC":      (S.high,     30, G.pressure,  "Amounts on the slip do not add up"),
+    "SLIP_AMOUNT_MISMATCH": (S.high,     40, G.pressure,  "Slip amount differs from what you expected to receive"),
+    "SLIP_NOT_PROOF":       (S.info,      0, G.none,      "A slip image is not proof that money arrived"),
+    "IMAGE_UNREADABLE":     (S.medium,   25, G.lure,      "The image could not be read reliably"),
     "CTX_NEW_ACCOUNT":      (S.high,     35, G.pressure,  "Bank account never used with this supplier"),
     "CTX_DOMAIN_MISMATCH":  (S.high,     30, G.lure,      "Sender domain differs from the supplier's known domain"),
     "CTX_PHONE_MISMATCH":   (S.medium,   15, G.lure,      "Sender phone differs from the supplier's known number"),
@@ -205,4 +212,36 @@ def check_message_text(text: str, has_attachment: bool = False) -> list[Hit]:
         hits.append(("PROTECTED_ATTACHMENT_LURE", "Scammers lock files with a password so email scanners cannot look inside.", pw.group(0), None))
     m = INJECTION.search(text)
     if m: hits.append(("INJECTION", "Text aimed at AI tools is a strong red flag on its own.", m.group(0).strip(), None))
+    return hits
+
+
+def check_image_facts(f: ImageFacts, expected_amount: float | None, brands: list[TrustedBrand], today: date | None = None) -> list[Hit]:
+    """Deterministic rules over what Gemini READ from an image. The model never decides the verdict."""
+    hits: list[Hit] = []
+    today = today or date.today()
+    if f.contains_instructions_to_ai:
+        hits.append(("INJECTION", "The image contains text aimed at AI tools.", None, None))
+    if not f.legible:
+        hits.append(("IMAGE_UNREADABLE", "Parts of the image were too unclear to read, so it could not be fully checked.", None, None))
+    text = f.visible_text or ""
+    have_injection = bool(hits and hits[0][0] == "INJECTION")
+    for h in check_message_text(text):
+        if h[0] == "INJECTION" and have_injection: continue
+        hits.append(h)
+    for u in extract_urls(text):
+        hits += check_url(u, brands)
+    if f.image_type == "payment_slip":
+        if not (f.reference_id or "").strip():
+            hits.append(("SLIP_NO_REFERENCE", "Real bank slips carry a reference number you can look up.", None, "reference ID"))
+        if f.date:
+            try:
+                d = date.fromisoformat(f.date)
+                if d > today: hits.append(("SLIP_FUTURE_DATE", "A payment cannot be made on a date that has not happened yet.", f.date, f"on or before {today.isoformat()}"))
+            except ValueError:
+                pass
+        if f.item_amounts and f.stated_total is not None and abs(sum(f.item_amounts) - f.stated_total) > 0.5:
+            hits.append(("SLIP_ARITHMETIC", f"The items add up to {sum(f.item_amounts):,.0f} but the total says {f.stated_total:,.0f}.", f"{f.stated_total:,.0f}", f"{sum(f.item_amounts):,.0f}"))
+        if expected_amount is not None and f.amount is not None and abs(f.amount - expected_amount) > 0.5:
+            hits.append(("SLIP_AMOUNT_MISMATCH", "The amount on the slip is not the amount you were expecting.", f"{f.amount:,.0f}", f"{expected_amount:,.0f}"))
+        hits.append(("SLIP_NOT_PROOF", "Slips can be edited or faked. Only your own bank account or app shows whether money arrived.", None, None))
     return hits

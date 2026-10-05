@@ -5,14 +5,15 @@ from __future__ import annotations
 from collections import Counter
 from . import rules
 from .context import check_message_context
-from .schemas import (BusinessProfile, CheckRequest, Evidence, EvidenceSet, FileInput,
-                      MessageInput, Severity, Stage, UrlInput)
+from .schemas import (BusinessProfile, Channel, CheckRequest, Evidence, EvidenceSet, FileInput,
+                      ImageInput, MessageInput, Severity, Stage, UrlInput)
 
 STAGE_ORDER = [Stage.none, Stage.lure, Stage.fake_page, Stage.payload, Stage.pressure]
 MAX_HITS_PER_RULE = 2          # stops one repeated signal from flooding the score
 INFO_LAYER = {"CTX": "context", "COR": "correlation"}
 
-def analyze(req: CheckRequest, prof: BusinessProfile) -> EvidenceSet:
+def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None) -> EvidenceSet:
+    """images: {thread_index: ImageFacts | None}. None means the image could not be read."""
     brands = rules.BUILTIN_BRANDS + prof.trusted_brands
     ev: list[Evidence] = []
     positives: list[str] = []
@@ -51,6 +52,17 @@ def analyze(req: CheckRequest, prof: BusinessProfile) -> EvidenceSet:
         elif isinstance(item, UrlInput) and inbound:
             if item.url not in seen_urls:
                 seen_urls.add(item.url); new_content = True; hits += rules.check_url(item.url, brands)
+        elif isinstance(item, ImageInput) and inbound:
+            new_content = True
+            facts = (images or {}).get(i)
+            if facts is None:
+                hits.append(("IMAGE_UNREADABLE", "The image could not be read, so it was not checked. Treat it as unverified.", None, None))
+            else:
+                hits += rules.check_image_facts(facts, item.expected_amount, brands)
+                pseudo = MessageInput(text=(facts.visible_text or "")[:5000], channel=Channel.other)
+                sup, ctx_hits, pos = check_message_context(pseudo, prof)
+                hits += ctx_hits; positives += pos
+                matched = matched or (sup.name if sup else None)
         elif isinstance(item, FileInput) and inbound:
             new_content = True; hits += rules.check_file(item.filename, item.mime_type, item.claimed_purpose)
 

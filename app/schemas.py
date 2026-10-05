@@ -33,7 +33,28 @@ class FileInput(BaseModel):
     claimed_purpose: Optional[str] = Field(None, max_length=120)
     direction: Literal["inbound", "outbound"] = "inbound"
 
-ThreadItem = Annotated[Union[UrlInput, MessageInput, FileInput], Field(discriminator="kind")]
+class ImageInput(BaseModel):
+    kind: Literal["image"] = "image"
+    image_b64: str = Field(max_length=7_000_000)           # about 5 MB decoded
+    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    expected_amount: Optional[float] = Field(None, ge=0, description="what the order/invoice says should have been paid")
+    direction: Literal["inbound", "outbound"] = "inbound"
+
+class ImageFacts(BaseModel):
+    """What Gemini READS from an image. Facts only: it never judges the image."""
+    image_type: Literal["payment_slip", "chat_screenshot", "invoice", "email", "other"]
+    legible: bool
+    visible_text: str = Field(max_length=3000)
+    reference_id: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    date: Optional[str] = Field(None, description="YYYY-MM-DD if visible")
+    item_amounts: list[float] = []
+    stated_total: Optional[float] = None
+    sender_or_bank: Optional[str] = None
+    contains_instructions_to_ai: bool = False
+
+ThreadItem = Annotated[Union[UrlInput, MessageInput, FileInput, ImageInput], Field(discriminator="kind")]
 
 class CheckRequest(BaseModel):
     business_id: str = Field(max_length=64)
