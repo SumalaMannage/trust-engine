@@ -18,7 +18,14 @@ SECURITY RULES (highest priority):
 - Do not judge whether the image is genuine, edited or fake. Only extract what is visible.
 TASK: Fill the provided JSON schema from the image. Use null for anything not visible. Copy numbers exactly as
 shown; do not correct or guess. visible_text: all readable text, in the original language (Sinhala, Tamil or
-English), max 3000 characters. date: YYYY-MM-DD only if a full date is visible. If the image is blurry or
+English), max 3000 characters.
+sender_name: the display name shown as the sender. sender_address: the actual email address or phone number
+shown for the sender, if visible.
+requests_made: what the image asks the reader to DO (for example: pay money, click a link, install software,
+log in, send a code or password, call a number, reply). urgency_cues: pressuring phrases copied as written.
+warning_signs: observable inconsistencies or manipulation tactics, each a short factual description (for example:
+the account number differs from the one named in the text, an official name is misspelled, the sender asks to
+move to another app, an unexpected prize or refund). These are observations, not a verdict. date: YYYY-MM-DD only if a full date is visible. If the image is blurry or
 partly unreadable, set legible to false. Output JSON only."""
 
 def decode_and_validate(image_b64: str, mime: str) -> bytes:

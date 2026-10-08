@@ -53,6 +53,11 @@ class ImageFacts(BaseModel):
     stated_total: Optional[float] = None
     sender_or_bank: Optional[str] = None
     contains_instructions_to_ai: bool = False
+    sender_name: Optional[str] = Field(None, description="display name shown as the sender")
+    sender_address: Optional[str] = Field(None, description="actual email address or phone shown for the sender")
+    requests_made: list[str] = Field(default_factory=list, max_length=8, description="actions the image asks the reader to take")
+    urgency_cues: list[str] = Field(default_factory=list, max_length=6, description="urgent or pressuring phrases, copied as written")
+    warning_signs: list[str] = Field(default_factory=list, max_length=6, description="observable inconsistencies or manipulation tactics, as short factual descriptions")
 
 ThreadItem = Annotated[Union[UrlInput, MessageInput, FileInput, ImageInput], Field(discriminator="kind")]
 
@@ -103,7 +108,7 @@ class Stage(str, Enum):
 
 class Evidence(BaseModel):
     id: str
-    layer: Literal["deterministic", "context", "correlation"]
+    layer: Literal["deterministic", "context", "correlation", "ai"]
     rule_id: str
     severity: Severity
     title: str
@@ -134,6 +139,34 @@ class AIExplanation(BaseModel):      # Gemini structured-output schema
     actions: list[str] = Field(max_length=4)
     cited_evidence_ids: list[str]
 
+AnalystTactic = Literal["pressure_urgency", "impersonation", "payment_redirection", "off_platform",
+                        "credential_harvesting", "advance_fee", "emotional_manipulation", "other"]
+
+class AnalystFinding(BaseModel):
+    """One scam tactic Gemini claims to see. Only kept if the quote really appears in the conversation."""
+    tactic: AnalystTactic
+    quote: str = Field(max_length=200)
+    reason: str = Field(max_length=200)
+    confidence: Literal["low", "medium", "high"]
+    source_index: int
+
+class AnalystReport(BaseModel):
+    findings: list[AnalystFinding] = Field(default_factory=list, max_length=6)
+
+class ImageRead(BaseModel):
+    """What the system read from an image, shown to the user for transparency (text is redacted)."""
+    index: int
+    image_type: str
+    legible: bool
+    reference_id: Optional[str] = None
+    amount: Optional[float] = None
+    currency: Optional[str] = None
+    date: Optional[str] = None
+    requests_made: list[str] = []
+    urgency_cues: list[str] = []
+    warning_signs: list[str] = []
+    text_excerpt: str = ""
+
 class TrustDecision(BaseModel):
     state: TrustState
     score: int
@@ -146,5 +179,6 @@ class TrustDecision(BaseModel):
     evidence: list[Evidence]
     positives: list[str]
     explanation_source: Literal["gemini", "template"]
+    image_reads: list[ImageRead] = []
     disclaimer: str = ("Checked against your records and known red flags only. "
                        "SAFE means nothing unusual was found, not that the sender is genuine.")

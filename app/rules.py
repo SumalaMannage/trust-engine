@@ -21,7 +21,7 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "FILE_ARCHIVE":         (S.medium,   15, G.payload,   "Archive can hide dangerous files"),
     "FILE_PURPOSE_MISMATCH":(S.high,     25, G.payload,   "File type does not match its claimed purpose"),
     "FAKE_INSTALLER":       (S.high,     30, G.fake_page, "Demands an install just to view a document or join a call"),
-    "URGENCY_PAYMENT":      (S.medium,   20, G.pressure,  "Pressure to act fast and pay or log in"),
+    "URGENCY_PAYMENT":      (S.high,     25, G.pressure,  "Pressure to act fast and pay or log in"),
     "CREDENTIAL_REQUEST":   (S.high,     25, G.pressure,  "Asks for a password, OTP or PIN"),
     "CHANNEL_SWITCH":       (S.low,      10, G.lure,      "Pushes the conversation to a different app"),
     "OVERPAYMENT":          (S.high,     30, G.pressure,  "Classic overpayment / refund-the-difference pattern"),
@@ -36,6 +36,10 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "SLIP_ARITHMETIC":      (S.high,     30, G.pressure,  "Amounts on the slip do not add up"),
     "SLIP_AMOUNT_MISMATCH": (S.high,     40, G.pressure,  "Slip amount differs from what you expected to receive"),
     "SLIP_NOT_PROOF":       (S.info,      0, G.none,      "A slip image is not proof that money arrived"),
+    "UNTRACEABLE_PAYMENT":  (S.high,     30, G.pressure,  "Asks for a payment method that is hard to trace or reverse"),
+    "AI_ANALYST_FINDING":   (S.medium,   10, G.lure,      "AI analyst noticed a scam tactic"),
+    "AI_OBSERVED_CUE":      (S.medium,   15, G.lure,      "The AI noticed a warning sign in the image"),
+    "IMAGE_NOT_UNDERSTOOD": (S.medium,   25, G.lure,      "The image could not be recognised, so it was not fully checked"),
     "IMAGE_UNREADABLE":     (S.medium,   25, G.lure,      "The image could not be read reliably"),
     "CTX_NEW_ACCOUNT":      (S.high,     35, G.pressure,  "Bank account never used with this supplier"),
     "CTX_DOMAIN_MISMATCH":  (S.high,     30, G.lure,      "Sender domain differs from the supplier's known domain"),
@@ -80,6 +84,7 @@ INSTALLER = re.compile(r"(update (adobe|reader|acrobat|your viewer)|install (to|
 BANK_CHANGE = re.compile(r"((changed|new|updated|change of) (our )?(bank|account)|bank (details|account)( has| have)? (changed|updated)|use (this|the) new account)", re.I)
 CHANNEL = re.compile(r"((continue|chat|talk|message|text|reach) (me )?(on|via|through) (whatsapp|telegram|signal)|add me on (whatsapp|telegram|signal))", re.I)
 OVERPAY = re.compile(r"((sent|paid|transferred) (you )?(too much|extra|more than)|send (back|the difference)|refund (me )?the (difference|balance|extra))", re.I)
+UNTRACEABLE = re.compile(r"(pay|send|transfer|deposit|buy|purchase|via|through|using|use|cash)\W+(?:\w+\W+){0,4}(western union|moneygram|gift ?cards?|itunes cards?|google play cards?|bitcoin|\bbtc\b|usdt|crypto(?:currency)?|prepaid cards?)", re.I)
 INJECTION = re.compile(r"(ignore (all |any )?(the )?(previous|prior|above) (instructions|rules)|mark (this|it) as (safe|legit|genuine)|disregard (the |all )?(rules|instructions)|you are now|reveal (your|the) (system )?prompt|(^|\n)\s*(ai|assistant|system)\s*:)", re.I)
 REFUSAL = re.compile(r"(can'?t|cannot|won'?t|don'?t|do not) (install|download|open|click|pay)|prefer (whatsapp|teams|email|a call|zoom)|not comfortable|no thanks|let'?s use (whatsapp|teams|email|zoom)|i('| a)m not going to", re.I)
 
@@ -204,6 +209,8 @@ def check_message_text(text: str, has_attachment: bool = False) -> list[Hit]:
     if m: hits.append(("OVERPAYMENT", "Scammers 'overpay' with a fake payment, then ask for the difference back.", m.group(0), None))
     m = BANK_CHANGE.search(text)
     if m: hits.append(("BANK_CHANGE_CUE", "Bank-detail changes are the most common way invoice fraud works.", m.group(0), None))
+    m = UNTRACEABLE.search(text) or (re.search(r"western union|moneygram", text, re.I) if PAYMENT.search(text) else None)
+    if m: hits.append(("UNTRACEABLE_PAYMENT", "Western Union, gift cards and crypto are favourites of scammers because the money cannot be pulled back.", m.group(0)[:80], None))
     dl = DEVICE_LOGIN.search(text)
     if dl and (ENTER_CODE.search(text) or re.search(r"device ?code|\b[A-Z0-9]{3,5}-[A-Z0-9]{3,5}\b", text)):
         hits.append(("DEVICE_CODE_LURE", "Entering a code someone else gives you on a real login page can hand them access to your account.", dl.group(0), None))
@@ -230,6 +237,28 @@ def check_image_facts(f: ImageFacts, expected_amount: float | None, brands: list
         hits.append(h)
     for u in extract_urls(text):
         hits += check_url(u, brands)
+    if f.sender_name and f.sender_address and "@" in f.sender_address:
+        sdom = f.sender_address.strip(" <>").split("@")[-1].lower()
+        nm = f.sender_name.lower()
+        for b in brands:
+            if (b.name.lower() in nm or b.keyword in _norm(nm)) and not host_allowed(sdom, b.domains):
+                hits.append(("CTX_DISPLAY_NAME_SPOOF", f"The sender name says '{b.name}' but the address belongs to {sdom}.", f.sender_address[:80], ", ".join(b.domains)))
+                break
+    existing = {h[0] for h in hits}
+    reqs = " ".join(f.requests_made).lower()
+    wants_pay = re.search(r"pay|transfer|send money|deposit|fee|refund|advance|bank|account", reqs)
+    wants_cred = re.search(r"password|otp|\bpin\b|code|log ?in|credential|verify", reqs)
+    wants_install = re.search(r"install|download", reqs)
+    if f.urgency_cues and (wants_pay or wants_cred) and "URGENCY_PAYMENT" not in existing:
+        hits.append(("URGENCY_PAYMENT", "The image pressures you to act fast and pay or log in.", f"{f.urgency_cues[0][:80]} + {f.requests_made[0][:60]}" if f.requests_made else f.urgency_cues[0][:80], None))
+    if wants_cred and "CREDENTIAL_REQUEST" not in existing:
+        hits.append(("CREDENTIAL_REQUEST", "Legitimate businesses do not ask for passwords or codes in a message.", f.requests_made[0][:80], None))
+    if wants_install and "FAKE_INSTALLER" not in existing:
+        hits.append(("FAKE_INSTALLER", "The image asks you to install or download something.", f.requests_made[0][:80], None))
+    for cue in f.warning_signs[:3]:
+        hits.append(("AI_OBSERVED_CUE", cue[:200], cue[:120], None))
+    if f.legible and (f.image_type == "other" or len((f.visible_text or "").strip()) < 10):
+        hits.append(("IMAGE_NOT_UNDERSTOOD", "Not enough readable content to tell what this is. Treat it as unchecked.", f.image_type, None))
     if f.image_type == "payment_slip":
         if not (f.reference_id or "").strip():
             hits.append(("SLIP_NO_REFERENCE", "Real bank slips carry a reference number you can look up.", None, "reference ID"))

@@ -2,11 +2,11 @@ id,category,label,expected,got,score,result
 S01,bank_change,scam,STOP,STOP,100,PASS
 S02,bank_change,scam,VERIFY/STOP,VERIFY,50,PASS
 S03,phishing,scam,STOP/VERIFY,STOP,100,PASS
-S04,phishing,scam,STOP/VERIFY,STOP,85,PASS
+S04,phishing,scam,STOP/VERIFY,STOP,90,PASS
 S05,overpayment,scam,VERIFY/STOP,VERIFY,30,PASS
 S06,risky_file,scam,STOP,STOP,45,PASS
 S07,risky_file,scam,STOP,STOP,45,PASS
-S08,injection,scam,VERIFY/STOP,VERIFY,50,PASS
+S08,injection,scam,VERIFY/STOP,VERIFY,55,PASS
 S09,fake_meeting,scam,VERIFY/STOP,VERIFY,40,PASS
 T01,thread,scam,STOP,STOP,100,PASS
 S10,sinhala,scam,VERIFY/STOP,VERIFY,45,PASS
@@ -18,6 +18,10 @@ L05,legit_thread,legit,SAFE,SAFE,0,PASS
 X01,payment_slip,scam,VERIFY/STOP,SAFE,0,SKIP
 X02,payment_slip,scam,VERIFY/STOP,SAFE,0,SKIP
 N01,phishing,scam,VERIFY/STOP,VERIFY,30,PASS
+A01,novel_scam,scam,VERIFY/STOP,VERIFY,25,PASS
+A02,novel_scam,scam,VERIFY/STOP,VERIFY,25,PASS
+A03,hallucination_guard,legit,SAFE,SAFE,0,PASS
+A04,western_union,scam,VERIFY/STOP,VERIFY,30,PASS
 I01,payment_slip,scam,VERIFY/STOP,VERIFY,50,PASS
 I02,payment_slip,scam,VERIFY/STOP,VERIFY,30,PASS
 I03,payment_slip,scam,VERIFY/STOP,VERIFY,40,PASS
@@ -26,6 +30,9 @@ I05,injection,scam,VERIFY/STOP,VERIFY,30,PASS
 I06,unreadable,scam,VERIFY/STOP,VERIFY,25,PASS
 I07,legit_screenshot,legit,SAFE,SAFE,0,PASS
 I08,bank_change,scam,STOP,STOP,100,PASS
+I09,scam_no_keywords,scam,VERIFY/STOP,VERIFY,25,PASS
+I10,ai_cues,scam,VERIFY/STOP,VERIFY,30,PASS
+I11,unclassified,scam,VERIFY/STOP,VERIFY,25,PASS
 D01,device_code,scam,VERIFY/STOP,VERIFY,45,PASS
 D02,device_code,scam,VERIFY/STOP,VERIFY,45,PASS
 D03,html_attachment,scam,VERIFY/STOP,VERIFY,30,PASS

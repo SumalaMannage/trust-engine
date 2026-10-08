@@ -4,7 +4,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.main import PROFILES
 from app.evidence import analyze, decide_state
-from app.schemas import CheckRequest, ImageFacts
+from app import analyst
+from app.schemas import AnalystFinding, CheckRequest, ImageFacts
 
 samples = []
 for f in sorted(Path(__file__).parent.glob("samples*.json")):
@@ -13,7 +14,11 @@ rows, fails = [], []
 for s in samples:
     # mock_facts = what Gemini WOULD read from each image (tests the rules, not Gemini's reading)
     imgs = {int(k): (ImageFacts(**v) if v else None) for k, v in s.get("mock_facts", {}).items()}
-    es = analyze(CheckRequest(business_id="demo_bakery", thread=s["thread"]), PROFILES["demo_bakery"], imgs)
+    req = CheckRequest(business_id="demo_bakery", thread=s["thread"])
+    # mock_findings = what the Gemini ANALYST would report (tests the plumbing, not Gemini). Quotes are verified like in production.
+    rep = analyst.AnalystReport(findings=[AnalystFinding(**f) for f in s.get("mock_findings", [])]) if s.get("mock_findings") else None
+    finds = analyst.validate(rep, analyst.build_sources(req, imgs))
+    es = analyze(req, PROFILES["demo_bakery"], imgs, finds)
     st = decide_state(es).value
     ok = st in s["expect"]
     if "expect_stage" in s: ok = ok and es.kill_chain_stage.value == s["expect_stage"]

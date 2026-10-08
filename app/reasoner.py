@@ -43,8 +43,8 @@ def payload_for_llm(es: EvidenceSet, state: TrustState, req: CheckRequest) -> st
 def template_explanation(es: EvidenceSet, state: TrustState) -> AIExplanation:
     top = sorted(es.evidence, key=lambda e: (-e.weight))[:3]
     if state == TrustState.SAFE:
-        return AIExplanation(headline="Nothing unusual found against your records",
-                             explanation="No red flags were found. " + ("; ".join(es.positives[:3]) + "." if es.positives else ""),
+        return AIExplanation(headline="No red flags found",
+                             explanation="No red flags were found in what we could read. " + ("; ".join(es.positives[:3]) + ". " if es.positives else "") + "This does not mean the message or sender is genuine.",
                              actions=["If money or goods are involved, still confirm in your own banking app before releasing anything."],
                              cited_evidence_ids=[])
     head = "STOP: do not open, click or pay" if state == TrustState.STOP else "Verify before you act"
@@ -82,7 +82,8 @@ def _gemini(es: EvidenceSet, state: TrustState, req: CheckRequest) -> AIExplanat
     return None
 
 def explain(es: EvidenceSet, state: TrustState, req: CheckRequest) -> TrustDecision:
-    exp, src = _gemini(es, state, req), "gemini"
+    # SAFE is never explained by the LLM: a model that writes "no fraud indicators, proceed" would overclaim.
+    exp, src = (None if state == TrustState.SAFE else _gemini(es, state, req)), "gemini"
     if exp is None: exp, src = template_explanation(es, state), "template"
     return TrustDecision(state=state, score=es.score, kill_chain_stage=es.kill_chain_stage,
                          escalation_detected=es.escalation_detected, injection_attempt_detected=es.injection_attempt_detected,

@@ -4,7 +4,8 @@ from . import extraction
 from .context import load_profiles
 from .evidence import analyze, decide_state
 from .reasoner import explain
-from .schemas import CheckRequest, ImageInput, TrustDecision
+from . import analyst, rules
+from .schemas import CheckRequest, ImageInput, ImageRead, TrustDecision
 
 app = FastAPI(title="Trust Engine", version="0.1")
 PROFILES = load_profiles()   # fixed allow-list of business ids: no user-controlled file paths
@@ -24,5 +25,11 @@ def check(req: CheckRequest) -> TrustDecision:
             except ValueError as e:
                 raise HTTPException(422, str(e))
             images[i] = extraction.extract_image(raw, item.mime_type)
-    es = analyze(req, prof, images)         # layers 1-3 (deterministic + context + correlation)
-    return explain(es, decide_state(es), req)   # layer 4 (Gemini explains; cannot change the verdict)
+    findings = analyst.run(analyst.build_sources(req, images))   # Gemini analyst: adds capped, quote-verified evidence only
+    es = analyze(req, prof, images, findings)         # layers 1-3 (deterministic + context + correlation)
+    d = explain(es, decide_state(es), req)  # layer 4 (Gemini explains; cannot change the verdict)
+    d.image_reads = [ImageRead(index=i, image_type=f.image_type, legible=f.legible, reference_id=f.reference_id, amount=f.amount,
+                               currency=f.currency, date=f.date, requests_made=f.requests_made, urgency_cues=f.urgency_cues,
+                               warning_signs=f.warning_signs, text_excerpt=rules.redact(f.visible_text or "")[:300])
+                     for i, f in images.items() if f is not None]
+    return d

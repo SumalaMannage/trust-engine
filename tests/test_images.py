@@ -55,3 +55,29 @@ def test_bad_images_rejected_before_gemini(monkeypatch):
     assert r.status_code == 422
     r = client.post("/v1/check", json={"business_id": "demo_bakery", "thread": [{"kind": "image", "mime_type": "image/png", "image_b64": "!!!"}]})
     assert r.status_code == 422
+
+def test_scam_image_with_no_keyword_matches_is_not_safe(monkeypatch):
+    f = ImageFacts(image_type="chat_screenshot", legible=True, visible_text="Dear customer your order stands cancelled kindly regularise",
+                   requests_made=["pay a release fee"], urgency_cues=["within 2 hours"])
+    d = post(f, monkeypatch=monkeypatch)
+    assert "URGENCY_PAYMENT" in rules_of(d) and d["state"] != "SAFE"
+
+def test_two_ai_observed_cues_force_verify(monkeypatch):
+    f = ImageFacts(image_type="chat_screenshot", legible=True, visible_text="Please see the details below and respond soon",
+                   warning_signs=["The account number differs from the one named in the text", "Sender asks to move to another app"])
+    d = post(f, monkeypatch=monkeypatch)
+    assert d["state"] == "VERIFY" and {e["layer"] for e in d["evidence"]} == {"ai"}
+
+def test_unrecognised_image_is_not_safe(monkeypatch):
+    d = post(ImageFacts(image_type="other", legible=True, visible_text=""), monkeypatch=monkeypatch)
+    assert "IMAGE_NOT_UNDERSTOOD" in rules_of(d) and d["state"] != "SAFE"
+
+def test_safe_is_never_explained_by_the_llm_and_never_overclaims(monkeypatch):
+    d = post(slip(item_amounts=[100000, 20000], stated_total=120000), expected=120000, monkeypatch=monkeypatch)
+    assert d["state"] == "SAFE" and d["explanation_source"] == "template" and "genuine" in d["explanation"]
+
+def test_response_shows_what_was_read_with_redaction(monkeypatch):
+    f = ImageFacts(image_type="chat_screenshot", legible=True, visible_text="Pay to account 555566667777 or call 077 123 4567 for details")
+    d = post(f, monkeypatch=monkeypatch)
+    ex = d["image_reads"][0]["text_excerpt"]
+    assert "555566667777" not in ex and "4567" not in ex

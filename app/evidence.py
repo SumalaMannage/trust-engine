@@ -10,9 +10,15 @@ from .schemas import (BusinessProfile, Channel, CheckRequest, Evidence, Evidence
 
 STAGE_ORDER = [Stage.none, Stage.lure, Stage.fake_page, Stage.payload, Stage.pressure]
 MAX_HITS_PER_RULE = 2          # stops one repeated signal from flooding the score
-INFO_LAYER = {"CTX": "context", "COR": "correlation"}
+INFO_LAYER = {"CTX": "context", "COR": "correlation", "AI_": "ai"}
 
-def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None) -> EvidenceSet:
+AI_CAP = 30                      # most points the AI analyst can ever add
+ANALYST_BASE = {"low": 5, "medium": 10, "high": 15}
+ANALYST_STAGE = {"pressure_urgency": Stage.pressure, "payment_redirection": Stage.pressure, "advance_fee": Stage.pressure,
+                 "credential_harvesting": Stage.pressure}
+NO_RULE_CAP = {"AI_ANALYST_FINDING"}   # these are capped by AI_CAP instead
+
+def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None, findings: list | None = None) -> EvidenceSet:
     """images: {thread_index: ImageFacts | None}. None means the image could not be read."""
     brands = rules.BUILTIN_BRANDS + prof.trusted_brands
     ev: list[Evidence] = []
@@ -22,8 +28,11 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
     seen_urls: set[str] = set()
     escalated = False
 
-    def add(rule_id: str, detail: str, observed, expected, idx: int | None):
-        sev, weight, stage, title = rules.RULES[rule_id]
+    def add(rule_id: str, detail: str, observed, expected, idx: int | None, weight: int | None = None, stage=None, title: str | None = None):
+        sev, w0, stage0, title0 = rules.RULES[rule_id]
+        weight = w0 if weight is None else weight
+        stage = stage or stage0
+        title = title or title0
         layer = INFO_LAYER.get(rule_id[:3], "deterministic")
         ev.append(Evidence(id=f"E{len(ev)+1}", layer=layer, rule_id=rule_id, severity=sev, title=title,
                            detail=detail, observed=None if observed is None else str(observed)[:200],
@@ -75,6 +84,15 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
             add("COR_ESCALATION", "After you said no or offered a safer option, the sender added urgency, a new link or a new file.",
                 f"message {i+1}", None, i)
 
+    # ---- AI analyst findings: capped, quote-verified upstream, can only add evidence ----
+    remaining = AI_CAP
+    for f in sorted(findings or [], key=lambda x: -ANALYST_BASE[x.confidence]):
+        w = min(ANALYST_BASE[f.confidence], remaining)
+        if w <= 0: break
+        remaining -= w
+        add("AI_ANALYST_FINDING", f.reason, f.quote, None, f.source_index, weight=w,
+            stage=ANALYST_STAGE.get(f.tactic, Stage.lure), title="AI analyst: " + f.tactic.replace("_", " "))
+
     # ---- cross-signal correlation ----
     ids = Counter(e.rule_id for e in ev)
     if (ids["BANK_CHANGE_CUE"] or ids["CTX_NEW_ACCOUNT"]) and (
@@ -89,7 +107,7 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
     per_rule: Counter = Counter(); score = 0
     for e in ev:
         per_rule[e.rule_id] += 1
-        if per_rule[e.rule_id] <= MAX_HITS_PER_RULE: score += e.weight
+        if per_rule[e.rule_id] <= MAX_HITS_PER_RULE or e.rule_id in NO_RULE_CAP: score += e.weight
     score = min(score, 100)
 
     reached = max((e.stage for e in ev), key=STAGE_ORDER.index, default=Stage.none)
@@ -100,6 +118,10 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
 def decide_state(es: EvidenceSet):
     """Deterministic and final. The LLM can never lower or change this."""
     from .schemas import TrustState
-    if any(e.severity == Severity.critical for e in es.evidence) or es.score >= 60: return TrustState.STOP
+    stop_trigger = any(e.severity == Severity.critical for e in es.evidence) or es.score >= 60
+    has_non_ai = any(e.layer != "ai" and e.weight > 0 for e in es.evidence)
+    if stop_trigger:
+        # AI-only evidence can lift a verdict to VERIFY but never to STOP: STOP needs a rule or business-context hit too.
+        return TrustState.STOP if has_non_ai else TrustState.VERIFY
     if es.score >= 25 or any(e.severity == Severity.high for e in es.evidence): return TrustState.VERIFY
     return TrustState.SAFE

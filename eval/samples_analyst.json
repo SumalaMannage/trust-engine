@@ -1,0 +1,111 @@
+[
+ {
+  "id": "A01",
+  "category": "novel_scam",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Fake job offer with advance fee. No fixed rule matches the wording; only the analyst (SIMULATED here)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Congratulations, you are selected for our remote packing role at 4500 per day. To reserve your slot, kindly clear the registration amount of 3,000 and send the screenshot.",
+    "channel": "whatsapp"
+   }
+  ],
+  "mock_findings": [
+   {
+    "tactic": "advance_fee",
+    "quote": "kindly clear the registration amount of 3,000",
+    "reason": "Asks you to pay money before any work or pay.",
+    "confidence": "high",
+    "source_index": 0
+   },
+   {
+    "tactic": "emotional_manipulation",
+    "quote": "Congratulations, you are selected",
+    "reason": "Unsolicited good news used to lower your guard.",
+    "confidence": "medium",
+    "source_index": 0
+   }
+  ]
+ },
+ {
+  "id": "A02",
+  "category": "novel_scam",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Fake QR payment trick (SIMULATED analyst)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "I will pay through the QR I am sending. First scan this code with your banking app so I can confirm your account is active.",
+    "channel": "whatsapp"
+   }
+  ],
+  "mock_findings": [
+   {
+    "tactic": "payment_redirection",
+    "quote": "scan this code with your banking app so I can confirm your account is active",
+    "reason": "Scanning a code can send money out of your account.",
+    "confidence": "high",
+    "source_index": 0
+   },
+   {
+    "tactic": "other",
+    "quote": "I will pay through the QR I am sending",
+    "reason": "A buyer who needs you to scan a code first is unusual.",
+    "confidence": "medium",
+    "source_index": 0
+   }
+  ]
+ },
+ {
+  "id": "A03",
+  "category": "hallucination_guard",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "Analyst invents a quote that is not in the message; it must be thrown away (SIMULATED)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi, can I collect the order at 5pm tomorrow? Thanks.",
+    "channel": "whatsapp"
+   }
+  ],
+  "mock_findings": [
+   {
+    "tactic": "pressure_urgency",
+    "quote": "you must pay immediately or lose the order",
+    "reason": "Invented.",
+    "confidence": "high",
+    "source_index": 0
+   }
+  ]
+ },
+ {
+  "id": "A04",
+  "category": "western_union",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Untraceable payment method, caught by a fixed rule (no AI needed)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Your refund is ready. Go to the closest Western Union office and transfer 1,700 SEK as a release fee.",
+    "channel": "email",
+    "sender": "service@e-pay-team.com"
+   }
+  ]
+ }
+]

@@ -206,5 +206,87 @@
     "visible_text": "ABC Flour: we changed our bank account, please urgently pay LKR 480,000 to account 555566667777"
    }
   }
+ },
+ {
+  "id": "I09",
+  "category": "scam_no_keywords",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Scam screenshot whose wording matches no keyword rule; only Gemini's observed requests and urgency catch it",
+  "thread": [
+   {
+    "kind": "image",
+    "mime_type": "image/png",
+    "image_b64": "AA=="
+   }
+  ],
+  "mock_facts": {
+   "0": {
+    "image_type": "chat_screenshot",
+    "legible": true,
+    "visible_text": "Dear customer your parcel stands held at depot. Kindly regularise the release charges to proceed",
+    "requests_made": [
+     "pay a release charge"
+    ],
+    "urgency_cues": [
+     "within 24 hours"
+    ]
+   }
+  }
+ },
+ {
+  "id": "I10",
+  "category": "ai_cues",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Two AI-observed warning signs and nothing else",
+  "thread": [
+   {
+    "kind": "image",
+    "mime_type": "image/png",
+    "image_b64": "AA=="
+   }
+  ],
+  "mock_facts": {
+   "0": {
+    "image_type": "chat_screenshot",
+    "legible": true,
+    "visible_text": "Hello dear, please find the invoice details as discussed earlier",
+    "warning_signs": [
+     "Bank name in the message is misspelled",
+     "Sender asks to continue on a different app"
+    ]
+   }
+  }
+ },
+ {
+  "id": "I11",
+  "category": "unclassified",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "Image the system could not recognise must not be SAFE",
+  "thread": [
+   {
+    "kind": "image",
+    "mime_type": "image/png",
+    "image_b64": "AA=="
+   }
+  ],
+  "mock_facts": {
+   "0": {
+    "image_type": "other",
+    "legible": true,
+    "visible_text": ""
+   }
+  }
  }
 ]
