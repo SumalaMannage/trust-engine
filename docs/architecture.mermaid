@@ -1,28 +1,37 @@
 flowchart TD
-    subgraph IN["Input interfaces (stateless: client sends the thread)"]
-        U["URL"] --- M["Message / thread"] --- F["File name, MIME, claimed purpose"]
+    subgraph PHONE["Owner's phone (browser)"]
+        UI["Next.js static site<br/>Check screen, verdict card, business view"]
     end
-    IN --> V["Validate + cap size<br/>(Pydantic, FastAPI on Cloud Run)"]
-    V --> LOCAL
+    UI -- "POST /v1/check (whole thread, text + images)<br/>GET /v1/business/id (masked)" --> API
 
-    subgraph LOCAL["Runs locally on raw text. Nothing leaves here un-redacted"]
+    subgraph RUN["One Cloud Run container (FastAPI)"]
         direction TB
-        D["1. Deterministic layer<br/>URL lookalike / punycode / IP / shortener<br/>risky + double extensions<br/>fake-installer, urgency, overpayment<br/>injection patterns"]
-        C["2. Business Context layer<br/>supplier domain + phone<br/>known bank accounts<br/>normal amount range, usual channel<br/>owner approval threshold"]
-        BP[("Business Profile<br/>(suppliers, accounts, brands)<br/>Firestore or JSON")]
-        BP -.-> C
-        D --> E
+        API["Validate + rate limit<br/>(size, type, magic bytes)"]
+        API --> IMG["Step 0: image extraction<br/>Gemini READS slips and screenshots into facts"]
+        IMG --> AN["Step 1: AI analyst<br/>Gemini lists scam tactics with exact quotes<br/>(quotes verified in code, capped at 30 points)"]
+        API --> RED["Mask phones, accounts, emails<br/>before any text goes to Gemini"]
+        RED --> IMG
+        RED --> AN
+        subgraph LOCAL["Runs locally on raw text"]
+            D["Deterministic rules<br/>links, files, lookalikes, urgency, payment methods"]
+            C["Business context<br/>suppliers, known accounts, normal amounts, channels"]
+            BP[("Business profile")]
+            BP -.-> C
+        end
+        API --> D
+        API --> C
+        IMG --> D
+        D --> E["Evidence correlation engine<br/>kill-chain stage, escalation, scoring"]
         C --> E
-        E["3. Evidence Correlation Engine<br/>per-message state, kill-chain stage<br/>escalation after refusal<br/>cross-signal rules, weighted score"]
+        AN --> E
+        E --> V{{"Verdict in code: SAFE / VERIFY / STOP<br/>AI-only evidence can reach VERIFY, never STOP<br/>AI can never lower a verdict"}}
+        V --> EX["Step 2: Gemini explains in plain English<br/>must cite real evidence ids; never explains SAFE"]
+        EX --> G{"Guardrails + time limit"}
+        G -- fails or times out --> T["Fixed template explanation"]
     end
-
-    E --> ES[("Evidence Set (JSON)<br/>every item has an id, rule, observed vs expected")]
-    ES --> ST{{"Deterministic verdict<br/>SAFE / VERIFY / STOP<br/>FINAL: the LLM cannot change it"}}
-    ES --> RED["Redact PII<br/>fence thread as UNTRUSTED DATA"]
-    RED --> G["4. AI reasoning layer<br/>Gemini on Vertex AI<br/>structured output"]
-    G --> GUARD{"Guardrails<br/>schema valid?<br/>cites real evidence ids?<br/>no overclaiming safety?"}
-    GUARD -- pass --> OUT
-    GUARD -- fail, retry once --> TPL["Template explanation<br/>(deterministic fallback)"]
-    TPL --> OUT
-    ST --> OUT["Trust Decision<br/>state, headline, plain-English why,<br/>actions, evidence list, kill-chain stage"]
-    OUT --> UI["Verdict card / Chrome extension / WhatsApp-forward bot"]
+    G --> OUT["Trust decision<br/>state, evidence (rule / records / AI), actions,<br/>what we read from the image, disclaimer"]
+    T --> OUT
+    OUT --> UI
+    VX(["Vertex AI: Gemini"]) -.-> IMG
+    VX -.-> AN
+    VX -.-> EX

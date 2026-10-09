@@ -68,3 +68,33 @@ def test_image_sender_name_vs_address_spoof():
     f = ImageFacts(image_type="email", legible=True, visible_text="Funds are waiting for you, please proceed",
                    sender_name="service@paypal.com", sender_address="<service@e-pay-team.com>")
     assert any(h[0] == "CTX_DISPLAY_NAME_SPOOF" for h in rules.check_image_facts(f, None, rules.BUILTIN_BRANDS))
+
+def test_thinking_level_setting(monkeypatch):
+    from app import llm
+    monkeypatch.delenv("GEMINI_THINKING_LEVEL", raising=False)
+    assert llm.thinking_kwargs() == {}
+    monkeypatch.setenv("GEMINI_THINKING_LEVEL", "nonsense")
+    assert llm.thinking_kwargs() == {}
+
+def test_slow_gemini_is_cut_off_and_check_still_answers(monkeypatch):
+    import time
+    from app import analyst as an, llm
+    monkeypatch.setenv("ANALYST_TIMEOUT_S", "0.3")
+    monkeypatch.setattr(an, "_fetch", lambda s: (time.sleep(2), None)[1])
+    t0 = time.time()
+    assert an.fetch({0: "some long enough message text here"}) is None
+    assert time.time() - t0 < 1.0
+
+def test_deadline_helper_returns_value_when_fast():
+    from app import llm
+    assert llm.run_with_deadline(lambda: 42, "NOPE_TIMEOUT", 5, "t") == 42
+    assert llm.run_with_deadline(lambda: 1/0, "NOPE_TIMEOUT", 5, "t") is None
+
+def test_thinking_budget_setting(monkeypatch):
+    from app import llm
+    monkeypatch.delenv("GEMINI_THINKING_LEVEL", raising=False)
+    monkeypatch.setenv("GEMINI_THINKING_BUDGET", "0")
+    cfg = llm.thinking_kwargs()["thinking_config"]
+    assert cfg.thinking_budget == 0
+    monkeypatch.setenv("GEMINI_THINKING_BUDGET", "oops")
+    assert llm.thinking_kwargs() == {}

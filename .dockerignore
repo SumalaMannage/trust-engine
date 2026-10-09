@@ -2,3 +2,12 @@ __pycache__/
 .pytest_cache/
 tests/
 .git/
+web/node_modules/
+web/.next/
+web/out/
+samples/
+req*.json
+*.jpg
+*.jpeg
+*.png
+*.webp

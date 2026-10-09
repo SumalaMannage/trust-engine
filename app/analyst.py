@@ -4,6 +4,7 @@ It can never remove evidence or lower a verdict, and every finding must quote th
 from __future__ import annotations
 import json, os, re
 from . import rules
+from . import llm
 from .schemas import AnalystFinding, AnalystReport, CheckRequest, MessageInput
 
 MODEL = os.getenv("GEMINI_MODEL", "")
@@ -45,17 +46,19 @@ def validate(report: AnalystReport | None, sources: dict[int, str]) -> list[Anal
     return kept
 
 def fetch(sources: dict[int, str]) -> AnalystReport | None:
+    return llm.run_with_deadline(lambda: _fetch(sources), "ANALYST_TIMEOUT_S", 15, "analyst")
+
+def _fetch(sources: dict[int, str]) -> AnalystReport | None:
     if not sources or not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")): return None
     try:
         from google import genai
         from google.genai import types
-        client = genai.Client(vertexai=True, project=os.environ["GOOGLE_CLOUD_PROJECT"],
-                              location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"))
+        client = llm.client()
         payload = "<untrusted_conversation>" + json.dumps([{"index": i, "text": t} for i, t in sources.items()]) + "</untrusted_conversation>"
         for _ in range(2):
             r = client.models.generate_content(model=MODEL, contents=payload,
                 config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.0,
-                                                   response_mime_type="application/json", response_schema=AnalystReport))
+                                                   response_mime_type="application/json", response_schema=AnalystReport, **llm.thinking_kwargs()))
             if isinstance(r.parsed, AnalystReport): return r.parsed
     except Exception as e:
         print(f"gemini_analyst_failed: {type(e).__name__}: {str(e)[:300]}", flush=True)

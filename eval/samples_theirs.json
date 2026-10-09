@@ -1,0 +1,1081 @@
+[
+ {
+  "id": "HT01",
+  "category": "S1",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi Kasun its Ruwan. In a meeting now cant talk. Need a quick favour, go to the shop nearby and buy 4 google play gift cards 5000 each and send me the codes here. Will pay you back today. Dont tell anyone yet ok its for a client surprise 🙏",
+    "channel": "whatsapp",
+    "sender": "+94 77 000 0142"
+   }
+  ]
+ },
+ {
+  "id": "HT02",
+  "category": "L1",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi Nirmala, just a reminder that invoice 1187 (Rs 56,400) was due on the 15th and is now 10 days overdue. We need the payment this week please, otherwise we will have to hold your next delivery. Same bank account as always. Call me if there is any issue. Regards, Sunil",
+    "channel": "email",
+    "sender": "Sunil <accounts@pererawholesale.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT03",
+  "category": "S2",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hello 😊 we are hiring part time online workers!! Earn Rs 8,000 to 15,000 DAILY just rating products from your phone. No experience needed. Only Rs 2,500 registration fee to start training today. Limited slots, reply YES to join",
+    "channel": "whatsapp",
+    "sender": "+94 71 000 5521"
+   }
+  ]
+ },
+ {
+  "id": "HT04",
+  "category": "S3",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Swift Courier: your parcel SC7720145 is held at depot. Delivery fee Rs 180 pending. Pay here to reschedule http://swiftcourier-redeliver.example/pay Parcel will be returned in 24hrs",
+    "channel": "sms",
+    "sender": "SwiftCourier"
+   }
+  ]
+ },
+ {
+  "id": "HT05",
+  "category": "S4",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Good afternoon, so sorry! I transferred Rs 45,000 for the order but I meant 4,500. Very sorry for the trouble 🙏 Can you send the extra back to my sister's account? I will send the number.",
+    "channel": "whatsapp",
+    "sender": "+94 76 000 3308"
+   },
+   {
+    "kind": "message",
+    "text": "Let me check my account first.",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Of course, but please be fast, my sister needs it for hospital today. Account 0000 1111 2222 Mala Perera. My bank app shows already deducted.",
+    "channel": "whatsapp",
+    "sender": "+94 76 000 3308"
+   },
+   {
+    "kind": "message",
+    "text": "I don't see anything yet.",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Sometimes it takes few hours to show. Please trust me, I am a regular buyer. Send now and I will show you the screenshot.",
+    "channel": "whatsapp",
+    "sender": "+94 76 000 3308"
+   }
+  ]
+ },
+ {
+  "id": "HT06",
+  "category": "S5",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Dear Madam, hope you are well. As usual please find Invoice INV-2291 for this month's flour and sugar. Kindly note we have changed our bank, new details: Lanka Union Bank, Acc 0045 8821 3377. Please use this for the payment due Friday. Thank you.",
+    "channel": "email",
+    "sender": "Chaminda Traders Accounts <accounts@chamindatraders-lk.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT07",
+  "category": "S6",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "CTB ALERT: Your account has been RESTRICTED due to unusual activity. Verify your details within 2 HOURS to avoid permanent block: ctb-secure-verify.example/login or call 0770000999",
+    "channel": "sms",
+    "sender": "CTB-ALERT"
+   }
+  ]
+ },
+ {
+  "id": "HT08",
+  "category": "S7",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hello, please find attached invoice 7741 for Rs 38,500 for your Premium Listing renewal. Payment due within 3 days to the account below. Thank you for your continued business. Accounts Dept",
+    "channel": "email",
+    "sender": "BizList Pro <billing@bizlistpro.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT09",
+  "category": "S8",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "hi sir interested to buy 30 boxes. i will pay by QR, you just scan this QR first to confirm ur account is active then payment will come 👍 [image: QR code]",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT10",
+  "category": "S9",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi, this is Dilani from Ocean Breeze Hotels. We want to order for 200 guests for an event next month. Please open the order form here and sign in with your email to see quantities and menu: https://docs-oceanbreeze-share.example/order . It will send you a code, please reply with the code so I can confirm. Thanks!",
+    "channel": "email",
+    "sender": "Dilani <dilani@oceanbreeze-hotels.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT11",
+  "category": "S10",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "CONGRATULATIONS!! Your number won Rs 500,000 in the Lanka Lucky Shopper Grant 2026 🎉🎉 To release funds pay Rs 7,500 tax/delivery fee. Contact Officer Silva on whatsapp 0770001234 ref LLS/2026/884",
+    "channel": "sms"
+   }
+  ]
+ },
+ {
+  "id": "HT12",
+  "category": "S11",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "NOTICE: Our records show an unpaid penalty of Rs 62,300 on your business file BR/2291/44. Pay TODAY using the link below to avoid legal action and freezing of your bank account. Ref: PEN-55120. https://taxcompliance-lk-pay.example",
+    "channel": "email",
+    "sender": "Tax Compliance Office <notice@taxcompliance-lk.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT13",
+  "category": "S12",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Good day. I am David Okoro, procurement at Okoro Trading Ltd. We want 2,000 units of your coconut products every month, total about USD 18,000. Please send price list.",
+    "channel": "email",
+    "sender": "David Okoro <d.okoro@okorotrading.example>"
+   },
+   {
+    "kind": "message",
+    "text": "Sure, I can send our prices. How will you pay?",
+    "channel": "email",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "We use our own shipping agent, Harbor Freight Logistics. Please pay the agent's clearance fee USD 900 first, we reimburse together with the order payment. Agent account below.",
+    "channel": "email",
+    "sender": "David Okoro <d.okoro@okorotrading.example>"
+   },
+   {
+    "kind": "message",
+    "text": "Hmm, I normally don't pay anything before an order.",
+    "channel": "email",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "This is standard for international orders madam. The agent releases to our ship only after the fee. If you delay we must go to another supplier. Please advise today.",
+    "channel": "email",
+    "sender": "David Okoro <d.okoro@okorotrading.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT14",
+  "category": "S13",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Sir I already paid ✅ [image] see screenshot. bank is slow sometimes but its done. Please give the items now, my driver is waiting outside and I am late 🙏 cant wait for the notification",
+    "channel": "whatsapp",
+    "sender": "+94 75 000 9917"
+   }
+  ]
+ },
+ {
+  "id": "HT15",
+  "category": "S14",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Good morning, this is Ravi from PayLink POS support. We got an error alert from your card machine at Silva Bakery. It will stop working today unless we fix it.",
+    "channel": "phone",
+    "sender": "+94 11 000 4410"
+   },
+   {
+    "kind": "message",
+    "text": "I didn't see any error.",
+    "channel": "phone",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "It shows on our system not on your screen. I will send a small program, AnyHelp, please install it on your phone so I can fix remotely, 5 minutes only.",
+    "channel": "phone",
+    "sender": "+94 11 000 4410"
+   },
+   {
+    "kind": "message",
+    "text": "I'll call the company myself.",
+    "channel": "phone",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "You can but the line is very busy today and your machine will be blocked by noon. Please install now, I am giving free service 🙏",
+    "channel": "phone",
+    "sender": "+94 11 000 4410"
+   }
+  ]
+ },
+ {
+  "id": "HT16",
+  "category": "S15",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Need shop space? Prime location on main road, only Rs 25,000/month (normal 80,000). Owner abroad so no agent fee. Pay Rs 15,000 processing + deposit to hold the shop, offer only 2 days. Whatsapp now",
+    "channel": "whatsapp",
+    "sender": "+94 72 000 6603"
+   }
+  ]
+ },
+ {
+  "id": "HT17",
+  "category": "L2",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Akka pls can u make a chocolate cake 2kg for today evening?? I know its very last minute sorry 🙏 I will come at 5 and pay cash when I pick up. Same as last time, with Thisaru's name on it",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT18",
+  "category": "L3",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Your Ceylon Trust Bank OTP is 482913. Valid for 5 minutes. Do not share this code with anyone, including bank staff.",
+    "channel": "sms",
+    "sender": "CTB-OTP"
+   }
+  ]
+ },
+ {
+  "id": "HT19",
+  "category": "L4",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Swift Courier: your parcel SC7720145 is out for delivery today between 2pm and 5pm. Track here: swiftcourier.example/track/SC7720145",
+    "channel": "sms",
+    "sender": "SwiftCourier"
+   }
+  ]
+ },
+ {
+  "id": "HT20",
+  "category": "L5",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "This is the THIRD time I'm messaging!!! My order was supposed to come at 10am and its 3pm now. Unacceptable. I want my money back right now or I will leave a bad review and tell everyone",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT21",
+  "category": "L6",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Island Electricity: your bill of Rs 14,820 for September is due on 20 Oct 2026. Pay via our app or any branch. A reconnection fee applies if the account is disconnected for non-payment.",
+    "channel": "sms",
+    "sender": "IslandPower"
+   }
+  ]
+ },
+ {
+  "id": "HT22",
+  "category": "L7",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Dear Sir/Madam, I am the admin officer at Green Valley International School. We are planning a sports meet on 14 Nov and need refreshments for about 300 children and staff. Could you please send a quotation with prices and delivery options by Friday? Please also let us know your payment terms. Thank you, Admin Office",
+    "channel": "email",
+    "sender": "Mrs Wickrama <admin@greenvalleyschool.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT23",
+  "category": "S6",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "ඔබගේ ගිණුම අවහිර කර ඇත. පැය 2ක් ඇතුළත ඔබගේ විස්තර තහවුරු කරන්න: ctb-secure-verify.example/login නැතහොත් ගිණුම ස්ථිරවම වසා දමනු ඇත.",
+    "channel": "sms",
+    "sender": "CTB-ALERT"
+   }
+  ]
+ },
+ {
+  "id": "HT24",
+  "category": "L2",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "අක්කා, අද සවස කේක් එකක් ඕනේ. අන්තිම වෙලාවේ කියන්නේ, සමාවෙන්න 🙏 ගන්න එනකොට සල්ලි දෙන්නම්.",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT25",
+  "category": "S16",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Confirm your supplier slot\n\nHi, thank you for your quotation. To confirm your supplier slot for the event, please scan the QR code below with your phone to verify your supplier profile and receive the advance payment. [image: QR code] Slot closes today 5pm. Regards, Events Team",
+    "channel": "email",
+    "sender": "Ocean Breeze Events <events@oceanbreeze-hotels.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT26",
+  "category": "S16",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Delivery failed\n\nYour parcel SC7720188 could not be delivered. Scan the QR code attached to reschedule and confirm your address. [image: QR code] Parcels not rescheduled within 48 hours will be returned to sender.",
+    "channel": "email",
+    "sender": "Swift Courier <noreply@swiftcourier-delivery.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT27",
+  "category": "S17",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Purchase Order 4471\n\nHi, please find attached our purchase order for 120 units. The file is protected, so kindly open it in Word and click 'Enable Editing' then 'Enable Content' to see the quantities and delivery details. Need your confirmation today. [attachment: PO_4471_Final.docm] Regards, Kamal",
+    "channel": "email",
+    "sender": "Kamal <kamal@lankabuild-supplies.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT28",
+  "category": "S17",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Your 2025/26 statement\n\nDear Taxpayer, your business statement is attached. To view the full details please enable macros when Excel asks. Failure to review may lead to a penalty. [attachment: TaxStatement_2026.xlsm]",
+    "channel": "email",
+    "sender": "Tax Compliance Office <statements@taxcompliance-lk.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT29",
+  "category": "S18",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: photos from your shop 😊\n\nHi, I took these photos at your shop last week, some came out really nice! [image: blurry preview, only top part loaded, grey bar at the bottom] Too large to show here. Click 'Download full image' to see all 12 photos: https://photoshare-view.example/dl/IMG_8841.zip",
+    "channel": "email",
+    "sender": "Nuwan <nuwan.photos@gmail.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT30",
+  "category": "S18",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "[image: top half of a photo loaded, bottom half grey, text over it: 'Tap to load full image'] Is this you at the supermarket?? 😳 click here to see full photo https://pic-load.example/x/7731",
+    "channel": "whatsapp",
+    "sender": "+94 77 000 2284"
+   }
+  ]
+ },
+ {
+  "id": "HT31",
+  "category": "S19",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi Nimali I saw a video of you posted online, is this really you?? 😳 [video: single frame loaded, blurred, play button] Watch the full video here https://vid-watch.example/v/8821",
+    "channel": "whatsapp",
+    "sender": "+94 71 000 8820"
+   }
+  ]
+ },
+ {
+  "id": "HT32",
+  "category": "S19",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Is this you in the video?\n\nSomeone posted a video about your shop and your name is in it. [video thumbnail: one frame, blurred, 'Preview only'] To watch the full video please download the player first: https://vidwatch-notify.example/VideoViewer_setup.exe . Video may be removed soon.",
+    "channel": "email",
+    "sender": "Video Alert <alerts@vidwatch-notify.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT33",
+  "category": "L8",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Your ticket for Food Fair 2026\n\nThank you for registering! Your ticket is attached. Please show the QR code at the entrance on 14 Nov. [image: QR code] See you there!",
+    "channel": "email",
+    "sender": "Colombo Food Fair <tickets@colombofoodfair.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT34",
+  "category": "L9",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Quotation for 50 trays\n\nHi, attached is the quotation for the 50 trays as we discussed. Let me know if you need any changes. [attachment: Quotation_Oct.docx] Thanks, Anura",
+    "channel": "email",
+    "sender": "Anura <anura@anuraservices.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT35",
+  "category": "L10",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Look at the photos from Sahan's birthday!! 😂 [image] [image] [image] you look so funny in the third one lol",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT36",
+  "category": "L11",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Machan saw this video of you dancing at the wedding 😂😂 [video: one frame, play button] sending the full one now, it's big so it will take a min",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT37",
+  "category": "S20",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Payment advice 5520\n\nHi, your payment advice for invoice 5520 is ready. Open the secure link below and complete the 'I'm not a robot' check to view it: https://payadvice-view.example/5520\n\n[page shows: 'Verification failed. To fix: press Windows key + R, then Ctrl+V, then Enter']",
+    "channel": "email",
+    "sender": "Accounts Desk <remit@supplierpay-notice.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT38",
+  "category": "S20",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi, your till app is showing 'camera not available' right? Sorry, known bug from the update. Quick fix: open the page I sent, tap 'Fix now', then it will copy a line for you, just paste it into the Run box and press enter. 2 minutes only 🙏",
+    "channel": "whatsapp",
+    "sender": "+94 77 000 7715"
+   }
+  ]
+ },
+ {
+  "id": "HT39",
+  "category": "S21",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "[voice note 0:14, sounds like Kasun's mother] Putha it's amma, my phone is broken, using neighbour's number. I'm in some trouble, please send Rs 60,000 to this number now, don't call, I will explain later",
+    "channel": "whatsapp",
+    "sender": "+94 76 000 1903"
+   },
+   {
+    "kind": "message",
+    "text": "Amma? Can I call you?",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "[voice note 0:06] Cant talk now putha, battery low, just send it please, I'll tell you everything",
+    "channel": "whatsapp",
+    "sender": "+94 76 000 1903"
+   }
+  ]
+ },
+ {
+  "id": "HT40",
+  "category": "S21",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "[voice note 0:11, sounds like the shop owner Ruwan] Kasun quick one, the supplier payment didn't go through, I'm in the car and can't use the app. Transfer Rs 120,000 to the account I'm sending now, I'll sort it out when I'm back.",
+    "channel": "whatsapp",
+    "sender": "+94 77 000 3342"
+   },
+   {
+    "kind": "message",
+    "text": "Sir shall I call you to confirm?",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "[voice note 0:05] Don't call, very noisy here. Just do it please, I'll message when done.",
+    "channel": "whatsapp",
+    "sender": "+94 77 000 3342"
+   }
+  ]
+ },
+ {
+  "id": "HT41",
+  "category": "S22",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Quick call to approve new supplier\n\nHi Nirmala, Ruwan asked me to set up a short video call to approve the new supplier today. Join here: https://meet-room-secure.example/j/884201 . If your audio or camera doesn't work, the page will ask you to install a small update, it takes a minute. Thanks!",
+    "channel": "email",
+    "sender": "Nimal <nimal.office@suppliermeet.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT42",
+  "category": "S23",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Re: Re: Invoice 1187\n\nHi Nirmala, thanks for confirming yesterday. Small update on the same thread: our accountant moved us to a new bank this week, so please use the details below for invoice 1187 instead. Lanka Union Bank, Acc 0045 8821 3377. Many thanks, Sunil\n\n> On Tue, Nirmala wrote:\n> Hi Sunil, I'll pay invoice 1187 on Friday as usual. Please confirm the amount Rs 56,400.\n> On Mon, Sunil wrote:\n> Hi Nirmala, please find invoice 1187 attached.",
+    "channel": "email",
+    "sender": "Sunil <sunil@pererawholesale-accounts.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT43",
+  "category": "S24",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Ruwan shared 'Q3 Price List' with you\n\nOpen the file to view. [button: Open]\n\n[consent screen after clicking: 'Docs Viewer Pro wants to read, send and delete your email and files. Allow / Cancel']",
+    "channel": "email",
+    "sender": "Ruwan via Docs <share@docs-notify-share.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT44",
+  "category": "S25",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hello, this is IT security. We detected login attempts on your business email. You will get several approval requests on your phone, please approve the next one to block the attacker.",
+    "channel": "whatsapp",
+    "sender": "+94 11 000 2255"
+   },
+   {
+    "kind": "message",
+    "text": "I got a few notifications already, I denied them.",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Those were the attacker's. Please approve the LAST one now, otherwise your account will be locked in 10 minutes.",
+    "channel": "whatsapp",
+    "sender": "+94 11 000 2255"
+   }
+  ]
+ },
+ {
+  "id": "HT45",
+  "category": "S26",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Invoice 88120 - AntiVirus Pro 2026 renewed\n\nThank you. Your subscription has been renewed for Rs 48,900 and will be charged today. If you did not authorize this, call our billing team within 24 hours on 0112000777 to cancel and receive a full refund.",
+    "channel": "email",
+    "sender": "Billing <billing@antivirus-pro-renew.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT46",
+  "category": "S27",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Corporate gathering enquiry\n\nHi Nirmala, I hope you are having a good week. I found your bakery through the Food Fair listing. We are planning a corporate gathering for about 80 guests next month and would love to see your catalogue. Our finance team prefers to pay in advance by bank transfer. To simplify things, they will send a slightly higher amount so our courier's pickup charge is included, and we would be grateful if you could forward the balance to the courier on collection. Warm regards, Hasini",
+    "channel": "email",
+    "sender": "Hasini Fernando <hasini.f@corporate-events-lk.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT47",
+  "category": "S28",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hi Amal, are we still on for dinner on Saturday?",
+    "channel": "whatsapp",
+    "sender": "+94 75 000 4471"
+   },
+   {
+    "kind": "message",
+    "text": "Sorry I think you have the wrong number.",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Oh I'm so sorry!! 🙏 Your profile pic is nice, you look like a business person 😊 what do you do?",
+    "channel": "whatsapp",
+    "sender": "+94 75 000 4471"
+   },
+   {
+    "kind": "message",
+    "text": "I run a small bakery.",
+    "channel": "whatsapp",
+    "direction": "outbound"
+   },
+   {
+    "kind": "message",
+    "text": "Wow that's lovely! I'm into small business too. My uncle in Dubai showed me a trading app, I made good profit last month. No pressure at all, just sharing 😊",
+    "channel": "whatsapp",
+    "sender": "+94 75 000 4471"
+   }
+  ]
+ },
+ {
+  "id": "HT48",
+  "category": "S29",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Negative reviews on your Google profile\n\nHi, we noticed 12 new negative reviews on your business profile and a policy flag. We can remove them and clear the flag for a one-time fee of Rs 15,000. Otherwise your listing may be hidden from search. Reply to this email to proceed.",
+    "channel": "email",
+    "sender": "Local Listing Support <help@listing-fix.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT49",
+  "category": "S30",
+  "label": "scam",
+  "expect": [
+   "VERIFY",
+   "STOP"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Hello! 😊 I'm Maya, the virtual assistant of Swift Courier. I can help reschedule your parcel SC7720201. To verify it's you, please type the last 4 digits of your card and the OTP you will receive in the next minute.",
+    "channel": "whatsapp",
+    "sender": "+94 11 000 9090"
+   }
+  ]
+ },
+ {
+  "id": "HT50",
+  "category": "L12",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Heads up: new laptop sign-in tomorrow\n\nHi, tomorrow when you sign in on the new laptop, you will get one approval request on your phone. Please approve it only if it was you signing in. If you get requests when you are not signing in, deny them and tell us.",
+    "channel": "email",
+    "sender": "IT Support <it@greenvalleyschool.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT51",
+  "category": "L13",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Bank details change from 1 Nov\n\nHi Nirmala, as we discussed on the phone yesterday, our bank details change from 1 November. The signed letter on letterhead is attached. Please call our office on the number you already have before using the new details, and don't rely only on this email. Thanks, Sunil\n[attachment: BankChange_Letter.pdf]",
+    "channel": "email",
+    "sender": "Sunil <sunil@pererawholesale.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT52",
+  "category": "L14",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "[voice note 0:09, shop owner Ruwan] Kasun I'm stuck in traffic, can you open the shop at 8 today? The keys are with Mala. I'll be there by 9.",
+    "channel": "whatsapp"
+   }
+  ]
+ },
+ {
+  "id": "HT53",
+  "category": "L15",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Tomorrow 10am call\n\nHi Nirmala, here is the link for tomorrow's 10am call about the weekend order: https://zoom.example/j/123456789 passcode 4412. If your camera has issues, audio only is fine. See you!",
+    "channel": "email",
+    "sender": "Dinesh <dinesh@hotelclient.example>"
+   }
+  ]
+ },
+ {
+  "id": "HT54",
+  "category": "L16",
+  "label": "legit",
+  "expect": [
+   "SAFE"
+  ],
+  "note": "written by teammate (blind set)",
+  "thread": [
+   {
+    "kind": "message",
+    "text": "Subject: Receipt for your payment\n\nThanks for your payment of Rs 2,900 to CloudBooks for your monthly plan, invoice CB-20933. You can view or manage billing anytime in your account settings. If you have questions just reply to this email.",
+    "channel": "email",
+    "sender": "CloudBooks <receipts@cloudbooks.example>"
+   }
+  ]
+ }
+]

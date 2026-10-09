@@ -5,6 +5,7 @@
 - Any failure falls back to a deterministic template, so the product never breaks."""
 from __future__ import annotations
 import json, os, re
+from . import llm
 from . import rules
 from .schemas import (AIExplanation, BusinessProfile, CheckRequest, EvidenceSet, MessageInput,
                       Stage, TrustDecision, TrustState)
@@ -64,17 +65,19 @@ def _guard(exp: AIExplanation, es: EvidenceSet, state: TrustState) -> bool:
     return True
 
 def _gemini(es: EvidenceSet, state: TrustState, req: CheckRequest) -> AIExplanation | None:
+    return llm.run_with_deadline(lambda: _gemini_call(es, state, req), "EXPLAIN_TIMEOUT_S", 15, "explanation")
+
+def _gemini_call(es: EvidenceSet, state: TrustState, req: CheckRequest) -> AIExplanation | None:
     if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")): return None
     try:
         from google import genai
         from google.genai import types
-        client = genai.Client(vertexai=True, project=os.environ["GOOGLE_CLOUD_PROJECT"],
-                              location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"))
+        client = llm.client()
         for _ in range(2):   # one retry on malformed output
             r = client.models.generate_content(
                 model=MODEL, contents=payload_for_llm(es, state, req),
                 config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.2,
-                                                   response_mime_type="application/json", response_schema=AIExplanation))
+                                                   response_mime_type="application/json", response_schema=AIExplanation, **llm.thinking_kwargs()))
             exp = r.parsed if isinstance(r.parsed, AIExplanation) else None
             if exp and _guard(exp, es, state): return exp
     except Exception:

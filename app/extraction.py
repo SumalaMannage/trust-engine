@@ -3,6 +3,7 @@ Gemini READS the image; deterministic rules JUDGE the facts. If anything fails w
 and the engine then reports the image as unreadable (never SAFE)."""
 from __future__ import annotations
 import base64, os
+from . import llm
 from .schemas import ImageFacts
 
 MODEL = os.getenv("GEMINI_MODEL", "")   # set from current Vertex AI docs; do not hardcode
@@ -41,19 +42,21 @@ def decode_and_validate(image_b64: str, mime: str) -> bytes:
     return raw
 
 def extract_image(raw: bytes, mime: str) -> ImageFacts | None:
+    return llm.run_with_deadline(lambda: _extract_image(raw, mime), "EXTRACT_TIMEOUT_S", 30, "image extraction")
+
+def _extract_image(raw: bytes, mime: str) -> ImageFacts | None:
     if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")):
         return None
     try:
         from google import genai
         from google.genai import types
-        client = genai.Client(vertexai=True, project=os.environ["GOOGLE_CLOUD_PROJECT"],
-                              location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1"))
+        client = llm.client()
         for _ in range(2):  # one retry on malformed output
             r = client.models.generate_content(
                 model=MODEL,
                 contents=[types.Part.from_bytes(data=raw, mime_type=mime), "Extract the fields from this image."],
                 config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.0,
-                                                   response_mime_type="application/json", response_schema=ImageFacts))
+                                                   response_mime_type="application/json", response_schema=ImageFacts, **llm.thinking_kwargs()))
             if isinstance(r.parsed, ImageFacts):
                 return r.parsed
     except Exception:

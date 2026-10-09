@@ -1,0 +1,18 @@
+# Use this file as the project's Dockerfile once the Next.js app exists in web/ (mv Dockerfile.web Dockerfile).
+# Stage 1 builds the static site, stage 2 is the Python API that also serves it.
+FROM node:20-slim AS web
+WORKDIR /web
+COPY web/package*.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app/ app/
+COPY data/ data/
+COPY --from=web /web/out /app/web/out
+ENV PORT=8080
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}

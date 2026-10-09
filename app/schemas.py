@@ -182,3 +182,32 @@ class TrustDecision(BaseModel):
     image_reads: list[ImageRead] = []
     disclaimer: str = ("Checked against your records and known red flags only. "
                        "SAFE means nothing unusual was found, not that the sender is genuine.")
+
+
+# ---------- read-only business view for the UI (account numbers masked to the last 4 digits) ----------
+class MaskedAccount(BaseModel):
+    bank: str
+    last4: str
+    payments_made: int = 0
+    first_used: Optional[str] = None
+
+class SupplierView(BaseModel):
+    id: str
+    name: str
+    aliases: list[str] = []
+    known_domains: list[str] = []
+    phone_hints: list[str] = []          # masked, for example "ends 4567"
+    accounts: list[MaskedAccount] = []
+    typical_amount_min: float = 0
+    typical_amount_max: float = 0
+    usual_channels: list[Channel] = []
+    relationship_since: Optional[str] = None
+
+class BusinessView(BaseModel):
+    business_id: str
+    name: str
+    currency: str
+    owner_approval_threshold: float
+    approved_tools: list[str] = []
+    suppliers: list[SupplierView] = []
+    trusted_brand_names: list[str] = []
