@@ -1,0 +1,19 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.business {
+  font: var(--text-overline);
+  color: var(--color-text-muted);
+}
+
+.title {
+  font: var(--text-display);
+  text-wrap: balance;
+}
+
+.lede {
+  color: var(--color-text-muted);
+}

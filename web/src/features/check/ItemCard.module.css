@@ -1,0 +1,124 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--card-padding);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+  scroll-margin-top: var(--space-6);
+}
+
+.title {
+  font: var(--text-title);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.move {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.move > button {
+  padding: 0 var(--space-3);
+}
+
+.hint,
+.error {
+  font: var(--text-caption);
+}
+.hint { color: var(--color-text-muted); }
+.error { color: var(--color-error); }
+
+/* ---- image item ---- */
+.imageBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ready,
+.waiting {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font: var(--text-overline);
+}
+.ready { background: var(--color-primary-soft); color: var(--color-primary); }
+.waiting { background: var(--color-surface-muted); color: var(--color-text-muted); }
+
+.imageBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  min-width: 0;
+}
+
+.imageInvalid {
+  border-color: var(--color-error);
+  background: var(--color-stop-bg);
+}
+
+.imageLabel {
+  font: var(--text-label);
+}
+
+.imageName {
+  font: var(--text-body-sm);
+  overflow-wrap: anywhere;
+}
+
+.preview {
+  display: block;
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.imageActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font: var(--text-label);
+  font-size: 1.0625rem;
+  cursor: pointer;
+}
+
+.pick:hover { background: var(--color-primary-soft); }
+.pick[aria-disabled] { cursor: progress; opacity: 0.7; }
+
+.imageBody:has(input:focus-visible) .pick {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-focus);
+}
+
+.spin { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

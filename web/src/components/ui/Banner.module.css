@@ -1,0 +1,37 @@
+.banner {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.danger {
+  background: var(--color-stop-bg);
+  color: var(--color-stop);
+}
+
+.warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  font: var(--text-label);
+}
+
+.text {
+  font: var(--text-body-sm);
+  color: var(--color-text);
+}

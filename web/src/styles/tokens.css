@@ -1,0 +1,77 @@
+/*
+ * Scam Shield design tokens, v1.0 (Light).
+ * Taken from the Figma exports "06 Composed examples" and "07 Native component masters".
+ * Replace values here when the Figma variables are exported; components only read these names.
+ */
+:root {
+  /* ---- color: brand and neutrals ---- */
+  --color-primary: #3d6a99;          /* Check button, focus ring, selected toggle */
+  --color-primary-hover: #315a85;
+  --color-primary-pressed: #284b70;
+  --color-primary-soft: #eef2f8;     /* disabled primary, active tab, tags */
+  --color-on-primary: #ffffff;
+
+  --color-bg: #f6f8fb;               /* page */
+  --color-surface: #ffffff;          /* cards, inputs */
+  --color-surface-muted: #f1f4f8;    /* tool summaries, inactive toggle, disabled input */
+  --color-text: #172033;
+  --color-text-muted: #556073;
+  --color-border: #d6dce5;
+  --color-border-strong: #b7c1cf;
+  --color-focus: #3d6a99;
+
+  /* ---- color: verdicts and feedback (always on solid surfaces, never translucent) ---- */
+  --color-stop: #b42318;
+  --color-stop-bg: #fdeeee;
+  --color-stop-border: #e0706a;
+  --color-verify: #8a5a00;
+  --color-verify-bg: #fff7e3;
+  --color-verify-border: #c99a3b;
+  --color-safe: #1f6b3f;
+  --color-safe-bg: #eaf6ee;
+  --color-safe-border: #5f9e77;
+  --color-error: #b42318;
+  --color-warning-bg: #fff7e3;
+  --color-warning-text: #7a5000;
+
+  /* ---- type ---- */
+  --font-sans: var(--font-inter), "Segoe UI", system-ui, -apple-system, sans-serif;
+  --text-display: 700 2rem/2.5rem var(--font-sans);      /* 32/40 page title */
+  --text-title: 700 1.375rem/1.875rem var(--font-sans);  /* 22/30 verdict word, section titles */
+  --text-heading: 600 1.125rem/1.625rem var(--font-sans);/* 18/26 card titles */
+  --text-body: 400 1.125rem/1.75rem var(--font-sans);    /* 18/28 body */
+  --text-body-sm: 400 1rem/1.5rem var(--font-sans);      /* 16/24 secondary body */
+  --text-label: 600 1rem/1.5rem var(--font-sans);        /* 16/24 field labels */
+  --text-caption: 400 0.875rem/1.25rem var(--font-sans); /* 14/20 hints, meta */
+  --text-overline: 600 0.8125rem/1.125rem var(--font-sans); /* 13/18 tags, "Observed · What we saw" */
+
+  /* ---- spacing (4 px grid) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --page-padding: 24px;              /* 16 px at 320 px wide, see globals.css */
+  --card-padding: 16px;              /* message card padding */
+  --control-height: 60px;
+  --textarea-min-height: 120px;
+
+  /* ---- radius ---- */
+  --radius-sm: 6px;                  /* tags */
+  --radius-md: 8px;                  /* buttons, inputs */
+  --radius-lg: 12px;                 /* cards, verdict */
+  --radius-full: 999px;
+
+  /* ---- elevation ---- */
+  --shadow-card: 0 1px 2px rgb(23 32 51 / 0.06), 0 2px 8px rgb(23 32 51 / 0.04);
+
+  /* ---- layout ---- */
+  --width-form: 560px;
+  --width-page: 1140px;
+  --width-aside: 320px;
+}

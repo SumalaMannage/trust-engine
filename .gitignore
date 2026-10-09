@@ -9,3 +9,6 @@ req*.json
 *.jpeg
 *.png
 *.webp
+
+# frontend assets are real files, not user uploads
+!web/public/**

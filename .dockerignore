@@ -11,3 +11,6 @@ req*.json
 *.jpeg
 *.png
 *.webp
+
+# frontend assets are needed by the web build stage
+!web/public/**

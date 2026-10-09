@@ -1,0 +1,23 @@
+.title {
+  font: var(--text-title);
+  font-size: 1.25rem;
+}
+
+.where {
+  font: var(--text-overline);
+  color: var(--color-text-muted);
+  margin-top: calc(var(--space-2) * -1);
+}
+
+.signs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-left: var(--space-5);
+  font: var(--text-body-sm);
+}
+
+.small {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,18 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  font: var(--text-overline);
+  white-space: nowrap;
+}
+
+.neutral {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}

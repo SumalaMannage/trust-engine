@@ -1,0 +1,62 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-6);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font: var(--text-label);
+  font-size: 1.0625rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.primary:active:not(:disabled) { background: var(--color-primary-pressed); }
+.primary:disabled:not([aria-busy]) {
+  background: var(--color-primary-soft);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+.primary[aria-busy] { cursor: progress; }
+
+.secondary {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
+.secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.quiet {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  color: var(--color-primary);
+}
+.quiet:hover { text-decoration: underline; }
+
+/* Focus matches the double-ring state in the component masters. */
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-focus);
+}
+
+.spinner {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

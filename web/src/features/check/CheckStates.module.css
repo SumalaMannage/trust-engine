@@ -1,0 +1,31 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.spinner {
+  color: var(--color-primary);
+  animation: spin 1100ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.title {
+  font: var(--text-title);
+}
+
+.meta {
+  font: var(--text-overline);
+  color: var(--color-text-muted);
+}
+
+.small {
+  font: var(--text-caption);
+  color: var(--color-text-muted);
+}

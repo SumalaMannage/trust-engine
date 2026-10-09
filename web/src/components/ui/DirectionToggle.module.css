@@ -1,0 +1,60 @@
+.group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  min-width: 0;
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 2px);
+  font: var(--text-body-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.option:has(.input:checked) {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.option:has(.input:checked) .dot {
+  background: currentColor;
+}
+
+.option:has(.input:focus-visible) {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-focus);
+}
+
+.group:disabled .option {
+  cursor: not-allowed;
+  opacity: 0.7;
+}

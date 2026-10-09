@@ -1,0 +1,22 @@
+.title {
+  font: var(--text-title);
+  font-size: 1.25rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: var(--space-1);
+  font: var(--text-body);
+}
+
+.number {
+  font-weight: 600;
+}
