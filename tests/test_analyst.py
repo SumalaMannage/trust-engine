@@ -21,7 +21,8 @@ def test_quote_match_ignores_case_and_spacing_and_fixes_index():
 
 def test_ai_contribution_is_capped_and_ai_alone_never_reaches_stop():
     r = req("Hi, we love your cakes and would like a large corporate order delivered next month for our staff party.")
-    finds = [F("large corporate order delivered", conf="high"), F("our staff party", conf="high"), F("we love your cakes", conf="high"), F("next month for", conf="high")]
+    finds = [F("large corporate order delivered", tactic="payment_redirection", conf="high"), F("our staff party", tactic="advance_fee", conf="high"),
+             F("we love your cakes", tactic="impersonation", conf="high"), F("next month for", tactic="off_platform", conf="high")]
     es = analyze(r, PROFILES["demo_bakery"], None, finds)
     ai_points = sum(e.weight for e in es.evidence if e.layer == "ai")
     assert ai_points == 30

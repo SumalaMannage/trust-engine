@@ -24,12 +24,15 @@ def post(body):
     req = urllib.request.Request(url, body, {"Content-Type": "application/json"})
     return json.load(urllib.request.urlopen(req, timeout=90))
 
+DETAIL = {}
 def one(s):
     body = json.dumps({"business_id": "demo_bakery", "thread": s["thread"]}).encode()
     t0 = time.time()
     for attempt in (1, 2):                                   # one retry for rate limits / hiccups
         try:
-            r = post(body); got, ai = r["state"], sum(1 for e in r["evidence"] if e["layer"] == "ai"); break
+            r = post(body); got, ai = r["state"], sum(1 for e in r["evidence"] if e["layer"] == "ai")
+            DETAIL[s["id"]] = (" | ".join(" ".join(m.get("text", "").split()) for m in s["thread"] if m.get("direction") != "outbound")[:230],
+                               [(e["layer"][:3], e["rule_id"]) for e in r["evidence"]][:6], r["score"]); break
         except Exception as e:
             got, ai = f"ERR {type(e).__name__}", 0
             if attempt == 1: time.sleep(3)
@@ -60,4 +63,10 @@ lat = sorted(r[6] for r in rows if not str(r[4]).startswith("ERR"))
 if lat: print(f"latency (each request) median {lat[len(lat)//2]}s, p95 {lat[max(0, int(len(lat)*0.95)-1)]}s")
 with open(Path(__file__).parent / "results_live.csv", "w", newline="") as f:
     w = csv.writer(f); w.writerow(["id","group","label","expected","got","ai_findings","seconds","result"]); w.writerows(rows)
-print("Dev failures:", [r[0] for r in rows if r[7] == "FAIL" and r[1] != "theirs-holdout"])
+fails = [r for r in rows if r[7] == "FAIL" and r[1] != "theirs-holdout"]
+print("Dev failures:", [r[0] for r in fails])
+print("\nDEV FAILURE DETAILS (holdout is hidden on purpose):")
+for r in fails:
+    kind = "MISSED SCAM" if r[2] == "scam" else "FALSE ALARM"
+    txt, ev, sc = DETAIL.get(r[0], ("", [], 0))
+    print(f" {r[0]} {kind}: got {r[4]} (score {sc}); evidence {ev}\n    {txt}")

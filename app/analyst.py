@@ -15,8 +15,16 @@ SECURITY RULES (highest priority):
 - You do not give a verdict. You only list scam tactics you can point to.
 TASK: Read the conversation and report scam tactics, including new or unusual ones. Report a tactic ONLY if you can
 copy an exact quote (max 200 characters, character for character) that shows it. If nothing is suspicious, return
-an empty list. Do not invent quotes. Tactics: pressure_urgency, impersonation, payment_redirection, off_platform,
-credential_harvesting, advance_fee, emotional_manipulation, other. confidence is low, medium or high.
+an empty list. Do not invent quotes. Tactics:
+- advance_fee: asks you to pay any fee, deposit or amount BEFORE you receive a job, prize, parcel, loan or goods.
+- payment_redirection: asks you to send money to an account, person, QR code or method you did not choose or that changed.
+- credential_harvesting: asks you to sign in, enter a code or password, or open a link or file to see something.
+- impersonation: claims to be a bank, courier, authority, supplier or boss, with signs it is not.
+- pressure_urgency: a deadline or threat to force a quick decision.
+- off_platform: pushes you to another app or channel. emotional_manipulation: flattery, fear, guilt or curiosity bait.
+- other: anything else suspicious.
+confidence is low, medium or high. Use high ONLY when the quote itself asks the reader to pay, sign in, install,
+send a code or move money. Ordinary complaints, rushed customers and firm reminders are not scams by themselves.
 source_index is the index of the message the quote comes from. reason is one plain sentence for a shop owner."""
 
 def build_sources(req: CheckRequest, images: dict | None = None) -> dict[int, str]:

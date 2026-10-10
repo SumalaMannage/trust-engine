@@ -1,38 +1,51 @@
-"""Run: python eval/run_eval.py   (no cloud needed). Uses the deterministic engine only."""
-import json, sys, csv
+"""Run: python3 eval/run_eval.py [--failures]     (offline: fixed rules + business context, NO Gemini analyst)
+Groups: 'mine' (developer-written), 'theirs-dev' and 'theirs-holdout' (teammate's blind set, split by odd/even id number).
+Only dev failures can be shown; the holdout is reported as totals so you cannot tune the rules to it."""
+import csv, json, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from app import analyst
 from app.main import PROFILES
 from app.evidence import analyze, decide_state
-from app import analyst
 from app.schemas import AnalystFinding, CheckRequest, ImageFacts
+
+def group_of(file: str, sid: str) -> str:
+    if "theirs" not in file: return "mine"
+    n = re.search(r"(\d+)$", sid)
+    return "theirs-holdout" if n and int(n.group(1)) % 2 == 1 else "theirs-dev"
 
 samples = []
 for f in sorted(Path(__file__).parent.glob("samples*.json")):
-    samples += json.loads(f.read_text())
-rows, fails = [], []
+    for s in json.loads(f.read_text()): s["_group"] = group_of(f.name, s["id"]); samples.append(s)
+rows = []
 for s in samples:
-    # mock_facts = what Gemini WOULD read from each image (tests the rules, not Gemini's reading)
     imgs = {int(k): (ImageFacts(**v) if v else None) for k, v in s.get("mock_facts", {}).items()}
     req = CheckRequest(business_id="demo_bakery", thread=s["thread"])
-    # mock_findings = what the Gemini ANALYST would report (tests the plumbing, not Gemini). Quotes are verified like in production.
     rep = analyst.AnalystReport(findings=[AnalystFinding(**f) for f in s.get("mock_findings", [])]) if s.get("mock_findings") else None
-    finds = analyst.validate(rep, analyst.build_sources(req, imgs))
-    es = analyze(req, PROFILES["demo_bakery"], imgs, finds)
+    es = analyze(req, PROFILES["demo_bakery"], imgs, analyst.validate(rep, analyst.build_sources(req, imgs)))
     st = decide_state(es).value
     ok = st in s["expect"]
     if "expect_stage" in s: ok = ok and es.kill_chain_stage.value == s["expect_stage"]
     if "expect_escalation" in s: ok = ok and es.escalation_detected == s["expect_escalation"]
-    skipped = s.get("needs_extraction", False)
-    rows.append([s["id"], s["category"], s["label"], "/".join(s["expect"]), st, es.score, "SKIP" if skipped else ("PASS" if ok else "FAIL")])
-    if not ok and not skipped: fails.append(s["id"])
-print(f"{'id':5}{'category':14}{'label':7}{'expected':14}{'got':8}{'score':6}result")
-for r in rows: print(f"{r[0]:5}{r[1]:14}{r[2]:7}{r[3]:14}{r[4]:8}{r[5]:<6}{r[6]}")
-tested = [(s, r) for s, r in zip(samples, rows) if not s.get("needs_extraction")]
-scams = [r for s, r in tested if s["label"] == "scam"]; legit = [r for s, r in tested if s["label"] == "legit"]
-caught = sum(r[4] != "SAFE" for r in scams); flagged = sum(r[4] != "SAFE" for r in legit)
-print(f"\nScams caught: {caught}/{len(scams)}   Legit wrongly flagged: {flagged}/{len(legit)}")
-print(f"Not yet testable (need image reading): {sum(s.get('needs_extraction', False) for s in samples)}")
-print("Failures:", fails or "none")
+    rows.append(dict(s=s, id=s["id"], group=s["_group"], label=s["label"], expected="/".join(s["expect"]), got=st, score=es.score,
+                     result="SKIP" if s.get("needs_extraction") else ("PASS" if ok else "FAIL")))
+print(f"{'id':6}{'group':16}{'label':7}{'expected':14}{'got':8}{'score':6}result")
+for r in rows:
+    if r["group"] == "theirs-holdout": continue            # holdout rows are never listed one by one
+    print(f"{r['id']:6}{r['group']:16}{r['label']:7}{r['expected']:14}{r['got']:8}{r['score']:<6}{r['result']}")
+print("\nSUMMARY (rules only, no Gemini analyst)")
+for g in ("mine", "theirs-dev", "theirs-holdout"):
+    t = [r for r in rows if r["group"] == g and r["result"] != "SKIP"]
+    sc = [r for r in t if r["label"] == "scam"]; lg = [r for r in t if r["label"] == "legit"]
+    if not t: continue
+    print(f"  {g:15} scams caught {sum(r['got'] != 'SAFE' for r in sc)}/{len(sc)}   legit wrongly flagged {sum(r['got'] != 'SAFE' for r in lg)}/{len(lg)}")
+print("Not yet testable (need image reading):", sum(1 for r in rows if r["result"] == "SKIP"))
+if "--failures" in sys.argv:
+    print("\nDEV FAILURES (holdout is hidden on purpose):")
+    for r in rows:
+        if r["result"] == "FAIL" and r["group"] != "theirs-holdout":
+            txt = " | ".join(m.get("text", "") for m in r["s"]["thread"] if m.get("kind") == "message" and m.get("direction") != "outbound")
+            print(f" {r['id']} [{r['s'].get('category','')}] expected {r['expected']} got {r['got']} score {r['score']}\n    {' '.join(txt.split())[:220]}")
 with open(Path(__file__).parent / "results.csv", "w", newline="") as f:
-    w = csv.writer(f); w.writerow(["id","category","label","expected","got","score","result"]); w.writerows(rows)
+    w = csv.writer(f); w.writerow(["id", "group", "label", "expected", "got", "score", "result"])
+    w.writerows([[r["id"], r["group"], r["label"], r["expected"], r["got"], r["score"], r["result"]] for r in rows])

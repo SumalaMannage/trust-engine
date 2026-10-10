@@ -13,7 +13,12 @@ MAX_HITS_PER_RULE = 2          # stops one repeated signal from flooding the sco
 INFO_LAYER = {"CTX": "context", "COR": "correlation", "AI_": "ai"}
 
 AI_CAP = 30                      # most points the AI analyst can ever add
-ANALYST_BASE = {"low": 5, "medium": 10, "high": 15}
+# Money and login tactics are strong evidence. Pressure, emotion and similar tactics also appear in honest messages
+# (an angry customer, a rushed buyer), so they are weak evidence and capped so they can never trigger a warning alone.
+STRONG_TACTICS = {"payment_redirection", "advance_fee", "credential_harvesting", "impersonation"}
+ANALYST_STRONG = {"low": 8, "medium": 15, "high": 25}
+ANALYST_WEAK = {"low": 3, "medium": 6, "high": 10}
+WEAK_CAP = 12
 ANALYST_STAGE = {"pressure_urgency": Stage.pressure, "payment_redirection": Stage.pressure, "advance_fee": Stage.pressure,
                  "credential_harvesting": Stage.pressure}
 NO_RULE_CAP = {"AI_ANALYST_FINDING"}   # these are capped by AI_CAP instead
@@ -85,10 +90,13 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
                 f"message {i+1}", None, i)
 
     # ---- AI analyst findings: capped, quote-verified upstream, can only add evidence ----
-    remaining = AI_CAP
-    for f in sorted(findings or [], key=lambda x: -ANALYST_BASE[x.confidence]):
-        w = min(ANALYST_BASE[f.confidence], remaining)
-        if w <= 0: break
+    remaining, weak_used = AI_CAP, 0
+    base = lambda f: (ANALYST_STRONG if f.tactic in STRONG_TACTICS else ANALYST_WEAK)[f.confidence]
+    for f in sorted(findings or [], key=lambda x: -base(x)):
+        w = min(base(f), remaining)
+        if f.tactic not in STRONG_TACTICS:
+            w = min(w, WEAK_CAP - weak_used); weak_used += max(w, 0)
+        if w <= 0: continue
         remaining -= w
         add("AI_ANALYST_FINDING", f.reason, f.quote, None, f.source_index, weight=w,
             stage=ANALYST_STAGE.get(f.tactic, Stage.lure), title="AI analyst: " + f.tactic.replace("_", " "))
