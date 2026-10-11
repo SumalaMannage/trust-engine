@@ -38,7 +38,7 @@ def test_signin_lure_counts_as_credential_request():
 def test_unknown_biller():
     t = "Please find attached invoice 220 for Rs 12,000, subscription renewal. Payment due within 5 days to the bank details below."
     sup, hits, _ = check_message_context(MessageInput(text=t), PROFILES["demo_bakery"])
-    assert sup is None and any(h[0] == "CTX_UNKNOWN_BILLER" for h in hits)
+    assert sup is None and any(h[0] == "CTX_UNKNOWN_BILLER_ACCOUNT" for h in hits)
     t3 = "Invoice for this month, LKR 98,000, payment due Friday to account 100200308231"
     sup3, hits3, _ = check_message_context(MessageInput(text=t3, claimed_entity="ABC Flour", sender="accounts@abcflour.example", channel="email"), PROFILES["demo_bakery"])
     assert sup3 is not None and not any(h[0] == "CTX_UNKNOWN_BILLER" for h in hits3)    # a known supplier is not flagged
@@ -61,3 +61,20 @@ def test_legit_messages_stay_safe_with_the_new_rules():
 def test_unknown_biller_alone_is_enough_for_a_warning():
     t = "Please find attached invoice 220 for Rs 12,000, listing renewal. Payment due within 5 days to the account below."
     assert state(t) == TrustState.VERIFY
+
+def test_overdue_reminder_with_same_account_and_receipts_are_not_flagged():
+    reminder = "Hi, a reminder that invoice 1187 for Rs 56,400 is 10 days overdue. We need the payment this week. Same bank account as always."
+    receipt = "Thanks for your payment of Rs 2,900 for your monthly plan, invoice CB-20933. View your billing anytime in settings."
+    assert state(reminder) == TrustState.SAFE
+    assert state(receipt) == TrustState.SAFE
+
+def test_overpayment_passed_on_to_a_third_party():
+    t = "Our finance team will send a slightly higher amount to cover the courier, please forward the balance to the courier on collection."
+    assert "OVERPAYMENT" in ids(t) and state(t) != TrustState.SAFE
+
+def test_one_ai_finding_alone_is_not_enough_two_are():
+    msg = "Your parcel arrives tomorrow. Track it with the courier app."
+    one = [F("Track it with the courier app", "impersonation", "high")]
+    two = one + [F("Your parcel arrives tomorrow", "payment_redirection", "medium")]
+    assert state(msg, one) == TrustState.SAFE
+    assert state(msg, two) == TrustState.VERIFY

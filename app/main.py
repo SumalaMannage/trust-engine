@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, re, time
+import concurrent.futures, contextvars, os, re, time
 from collections import defaultdict, deque
 from pathlib import Path
 try:  # load the Gemini SDK when the container starts, so the first request does not pay for the import
@@ -9,11 +9,11 @@ except Exception:
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from . import analyst, extraction, rules
+from . import analyst, extraction, llm, rules
 from .context import load_profiles
 from .evidence import analyze, decide_state
 from .reasoner import explain
-from .schemas import (BusinessProfile, BusinessView, CheckRequest, ImageInput, ImageRead, MaskedAccount, SupplierView, TrustDecision)
+from .schemas import (AIStatus, BusinessProfile, BusinessView, CheckRequest, ImageInput, ImageRead, MaskedAccount, SupplierView, TrustDecision)
 
 app = FastAPI(title="Trust Engine", version="0.2")
 PROFILES = load_profiles()   # fixed allow-list of business ids: no user-controlled file paths
@@ -30,7 +30,9 @@ def rate_limit(request: Request) -> None:
     ip = (request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?"))
     now, q = time.time(), _hits[ip]
     while q and now - q[0] > 60: q.popleft()
-    if len(q) >= limit: raise HTTPException(429, "Too many checks. Please wait a minute and try again.")
+    if len(q) >= limit:
+        wait = max(1, int(60 - (now - q[0])) + 1)
+        raise HTTPException(429, "Too many checks. Please wait a minute and try again.", headers={"Retry-After": str(wait)})
     q.append(now)
 
 @app.get("/health")
@@ -63,21 +65,30 @@ def check(req: CheckRequest, request: Request) -> TrustDecision:
     prof = PROFILES.get(req.business_id)
     if prof is None: raise HTTPException(404, "Unknown business profile")
     t0 = time.perf_counter()
+    status = llm.start_status()
     images = {}                             # step 0: Gemini READS images into facts (or None if unreadable)
-    for i, item in enumerate(req.thread):
-        if isinstance(item, ImageInput):
-            try:
-                raw = extraction.decode_and_validate(item.image_b64, item.mime_type)
-            except ValueError as e:
-                raise HTTPException(422, str(e))
-            images[i] = extraction.extract_image(raw, item.mime_type)
+    todo = [(i, item) for i, item in enumerate(req.thread) if isinstance(item, ImageInput)]
+    max_images = int(os.getenv("MAX_IMAGES", "4"))
+    if len(todo) > max_images:
+        raise HTTPException(422, detail={"message": f"You can add up to {max_images} images to one check.", "position": todo[max_images][0]})
+    decoded = []
+    for i, item in todo:                    # cheap checks first, so a bad image is rejected before any Gemini call
+        try:
+            decoded.append((i, extraction.decode_and_validate(item.image_b64, item.mime_type), item.mime_type))
+        except ValueError as e:
+            raise HTTPException(422, detail={"message": str(e), "position": i})
+    if decoded:                             # read all images at the same time
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(decoded)) as pool:
+            futs = {i: pool.submit(contextvars.copy_context().run, extraction.extract_image, raw, mime) for i, raw, mime in decoded}
+            images = {i: f.result() for i, f in futs.items()}
     t1 = time.perf_counter()
     findings = analyst.run(analyst.build_sources(req, images))   # Gemini analyst: adds capped, quote-verified evidence only
     t2 = time.perf_counter()
-    es = analyze(req, prof, images, findings)         # layers 1-3 (deterministic + context + correlation)
+    es = analyze(req, prof, images, findings, status.get("extraction"))   # layers 1-3 (deterministic + context + correlation)
     d = explain(es, decide_state(es), req)  # layer 4 (Gemini explains; cannot change the verdict)
     t3 = time.perf_counter()
     print(f"timing extract={t1-t0:.1f}s analyst={t2-t1:.1f}s explain={t3-t2:.1f}s total={t3-t0:.1f}s", flush=True)   # numbers only, no content
+    d.ai_status = AIStatus(**status)
     d.image_reads = [ImageRead(index=i, image_type=f.image_type, legible=f.legible, reference_id=f.reference_id, amount=f.amount,
                                currency=f.currency, date=f.date, requests_made=f.requests_made, urgency_cues=f.urgency_cues,
                                warning_signs=f.warning_signs, text_excerpt=rules.redact(f.visible_text or "")[:300])

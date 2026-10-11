@@ -49,7 +49,12 @@ def check_message_context(msg: MessageInput, prof: BusinessProfile):
                 break
     if sup is None:
         if re.search(r"\b(invoice|renewal|subscription|premium listing|directory|domain)\b", msg.text, re.I) and re.search(r"\b(due|payable|pay|payment)\b", msg.text, re.I):
-            hits.append(("CTX_UNKNOWN_BILLER", "No supplier in your records matches this sender. Check you really ordered this before paying.", msg.claimed_entity or msg.sender, None))
+            if rules.RECEIPT.search(msg.text):
+                pass                                                   # a receipt for a payment already made is not a demand
+            elif rules.ACCOUNT_GIVEN.search(msg.text) and not rules.SAME_ACCOUNT.search(msg.text):
+                hits.append(("CTX_UNKNOWN_BILLER_ACCOUNT", "Nobody in your records sent this, and it gives account details to pay into. Check you really ordered it before paying.", msg.claimed_entity or msg.sender, None))
+            else:
+                hits.append(("CTX_UNKNOWN_BILLER", "No supplier in your records matches this sender. Check you really ordered this before paying.", msg.claimed_entity or msg.sender, None))
         if claims_existing_relationship(msg.text):
             hits.append(("CTX_UNKNOWN_SUPPLIER", "No supplier in your records matches this sender or name.", msg.claimed_entity or msg.sender, None))
         return None, hits, positives

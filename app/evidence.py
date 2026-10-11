@@ -16,14 +16,14 @@ AI_CAP = 30                      # most points the AI analyst can ever add
 # Money and login tactics are strong evidence. Pressure, emotion and similar tactics also appear in honest messages
 # (an angry customer, a rushed buyer), so they are weak evidence and capped so they can never trigger a warning alone.
 STRONG_TACTICS = {"payment_redirection", "advance_fee", "credential_harvesting", "impersonation"}
-ANALYST_STRONG = {"low": 8, "medium": 15, "high": 25}
+ANALYST_STRONG = {"low": 8, "medium": 15, "high": 20}   # one finding alone stays below the 25-point warning line
 ANALYST_WEAK = {"low": 3, "medium": 6, "high": 10}
 WEAK_CAP = 12
 ANALYST_STAGE = {"pressure_urgency": Stage.pressure, "payment_redirection": Stage.pressure, "advance_fee": Stage.pressure,
                  "credential_harvesting": Stage.pressure}
 NO_RULE_CAP = {"AI_ANALYST_FINDING"}   # these are capped by AI_CAP instead
 
-def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None, findings: list | None = None) -> EvidenceSet:
+def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None, findings: list | None = None, extraction_status: str | None = None) -> EvidenceSet:
     """images: {thread_index: ImageFacts | None}. None means the image could not be read."""
     brands = rules.BUILTIN_BRANDS + prof.trusted_brands
     ev: list[Evidence] = []
@@ -70,7 +70,10 @@ def analyze(req: CheckRequest, prof: BusinessProfile, images: dict | None = None
             new_content = True
             facts = (images or {}).get(i)
             if facts is None:
-                hits.append(("IMAGE_UNREADABLE", "The image could not be read, so it was not checked. Treat it as unverified.", None, None))
+                if extraction_status == "off":
+                    hits.append(("IMAGE_NOT_CHECKED", "Image checking is switched off on this server, so the picture was not looked at. Treat it as unverified.", None, None))
+                else:
+                    hits.append(("IMAGE_UNREADABLE", "The image could not be read, so it was not checked. Treat it as unverified.", None, None))
             else:
                 hits += rules.check_image_facts(facts, item.expected_amount, brands)
                 pseudo = MessageInput(text=(facts.visible_text or "")[:5000], channel=Channel.other)

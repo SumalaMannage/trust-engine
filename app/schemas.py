@@ -167,6 +167,14 @@ class ImageRead(BaseModel):
     warning_signs: list[str] = []
     text_excerpt: str = ""
 
+AIStep = Literal["ok", "off", "timeout", "error", "skipped"]
+
+class AIStatus(BaseModel):
+    """Did each Gemini step run? 'off' = not configured on this server, 'skipped' = not needed for this check."""
+    extraction: AIStep = "skipped"
+    analyst: AIStep = "skipped"
+    explanation: AIStep = "skipped"
+
 class TrustDecision(BaseModel):
     state: TrustState
     score: int
@@ -180,6 +188,7 @@ class TrustDecision(BaseModel):
     positives: list[str]
     explanation_source: Literal["gemini", "template"]
     image_reads: list[ImageRead] = []
+    ai_status: AIStatus = AIStatus()
     disclaimer: str = ("Checked against your records and known red flags only. "
                        "SAFE means nothing unusual was found, not that the sender is genuine.")
 

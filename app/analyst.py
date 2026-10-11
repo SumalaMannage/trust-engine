@@ -54,7 +54,10 @@ def validate(report: AnalystReport | None, sources: dict[int, str]) -> list[Anal
     return kept
 
 def fetch(sources: dict[int, str]) -> AnalystReport | None:
-    return llm.run_with_deadline(lambda: _fetch(sources), "ANALYST_TIMEOUT_S", 15, "analyst")
+    if not sources: return None
+    if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")):
+        llm.mark("analyst", "off"); return None
+    return llm.run_with_deadline(lambda: _fetch(sources), "ANALYST_TIMEOUT_S", 15, "analyst", "analyst")
 
 def _fetch(sources: dict[int, str]) -> AnalystReport | None:
     if not sources or not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")): return None

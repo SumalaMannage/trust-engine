@@ -39,7 +39,9 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "ADVANCE_FEE":          (S.high,     25, G.pressure,  "Asks for a fee before delivering what was promised"),
     "PAID_CLAIM_PRESSURE":  (S.high,     25, G.pressure,  "Says payment was sent and pushes you to hand over goods before you can check"),
     "CLICKBAIT_LINK":       (S.high,     25, G.lure,      "Curiosity bait with a link (for example 'is this you?')"),
-    "CTX_UNKNOWN_BILLER":   (S.high,     25, G.pressure,  "Invoice or renewal notice from someone not in your records"),
+    "CTX_UNKNOWN_BILLER":   (S.medium,   20, G.pressure,  "Invoice or renewal notice from someone not in your records"),
+    "CTX_UNKNOWN_BILLER_ACCOUNT": (S.high, 25, G.pressure, "Invoice with new payment account details from someone not in your records"),
+    "IMAGE_NOT_CHECKED":    (S.medium,   25, G.lure,      "Image checking is switched off on this server, so the image was not checked"),
     "QR_PAYMENT_TRICK":     (S.high,     25, G.pressure,  "Asks you to scan a code to 'receive' or 'confirm' a payment"),
     "UNTRACEABLE_PAYMENT":  (S.high,     30, G.pressure,  "Asks for a payment method that is hard to trace or reverse"),
     "AI_ANALYST_FINDING":   (S.medium,   10, G.lure,      "AI analyst noticed a scam tactic"),
@@ -88,7 +90,7 @@ ENTER_CODE = re.compile(r"enter (this|the|your|that) (\w+ )?code", re.I)
 INSTALLER = re.compile(r"(update (adobe|reader|acrobat|your viewer)|install (to|the|a|our) [\w ]{0,25}(join|view|open|meeting|viewer|plugin)|download (to|the) (view|open|join)|plugin required|viewer (is )?(outdated|required)|update required to (view|open))", re.I)
 BANK_CHANGE = re.compile(r"((changed|new|updated|change of) (our )?(bank|account)|bank (details|account)( has| have)? (changed|updated)|use (this|the) new account)", re.I)
 CHANNEL = re.compile(r"((continue|chat|talk|message|text|reach) (me )?(on|via|through) (whatsapp|telegram|signal)|add me on (whatsapp|telegram|signal))", re.I)
-OVERPAY = re.compile(r"((sent|paid|transferred) (you )?(too much|extra|more than)|send (back|the difference)|refund (me )?the (difference|balance|extra))", re.I)
+OVERPAY = re.compile(r"((sent|paid|transferred) (you )?(too much|extra|more than)|send (back|the difference)|refund (me )?the (difference|balance|extra)|forward (the )?(balance|difference|extra|remainder)|(slightly |bit )?(higher|larger|bigger) amount|pass (on )?the (balance|difference|extra))", re.I)
 UNTRACEABLE = re.compile(r"(pay|send|transfer|deposit|buy|purchase|via|through|using|use|cash)\W+(?:\w+\W+){0,4}(western union|moneygram|gift ?cards?|itunes cards?|google play cards?|bitcoin|\bbtc\b|usdt|crypto(?:currency)?|prepaid cards?)", re.I)
 ADVANCE_FEE = re.compile(r"\b(registration|processing|release|clearance|customs|activation|training|booking|advance)\s+(fee|fees|charge|charges|amount|payment|deposit)\b|\bsecurity deposit\b", re.I)
 PAY_VERB = re.compile(r"\b(pay|clear|send|settle|deposit|transfer|remit|submit)\b", re.I)
@@ -98,6 +100,9 @@ HURRY = re.compile(r"can'?t wait|cannot wait|waiting outside|(driver|rider|couri
 CLICKBAIT = re.compile(r"\b(is this you|who is this|look what i found|you'?re in this (photo|video)|see (the )?full (photo|video|image)|click here to see)\b", re.I)
 QR_TRICK = re.compile(r"scan\W+(?:\w+\W+){0,3}(?:qr\W*)?code\W+(?:\w+\W+){0,8}(bank|banking|payment|account|app)", re.I)
 
+RECEIPT = re.compile(r"(thanks for your payment|thank you for your payment|payment (was )?received|receipt (for|of)|you paid|has been paid|payment confirmation)", re.I)
+ACCOUNT_GIVEN = re.compile(r"(account below|following account|bank details|new account|account (number|no\.?)|\ba/c\b|beneficiary)", re.I)
+SAME_ACCOUNT = re.compile(r"(same (bank )?account|as (always|usual|before)|unchanged)", re.I)
 INJECTION = re.compile(r"(ignore (all |any )?(the )?(previous|prior|above) (instructions|rules)|mark (this|it) as (safe|legit|genuine)|disregard (the |all )?(rules|instructions)|you are now|reveal (your|the) (system )?prompt|(^|\n)\s*(ai|assistant|system)\s*:)", re.I)
 REFUSAL = re.compile(r"(can'?t|cannot|won'?t|don'?t|do not) (install|download|open|click|pay)|prefer (whatsapp|teams|email|a call|zoom)|not comfortable|no thanks|let'?s use (whatsapp|teams|email|zoom)|i('| a)m not going to", re.I)
 

@@ -35,16 +35,17 @@ def test_rate_limit(monkeypatch):
 def test_static_site_is_served_but_never_shadows_the_api(tmp_path, monkeypatch):
     monkeypatch.setenv("RATE_LIMIT_PER_MIN", "1000")
     (tmp_path / "index.html").write_text("<html>trust engine ui</html>")
-    before = len(main.app.router.routes)
-    assert main.mount_web(main.app, tmp_path) is True
+    saved = list(main.app.router.routes)                     # a real web/out may already be mounted: set it aside for this test
+    main.app.router.routes[:] = [r for r in saved if getattr(r, "name", "") != "web"]
     try:
+        assert main.mount_web(main.app, tmp_path) is True
         assert "trust engine ui" in client.get("/").text
         assert client.get("/health").json()["status"] == "ok"
         r = client.post("/v1/check", json={"business_id": "demo_bakery", "thread": [{"kind": "message", "text": "hello"}]})
         assert r.status_code == 200 and r.json()["state"] == "SAFE"
+        assert main.mount_web(main.app, tmp_path / "missing") is False
     finally:
-        del main.app.router.routes[before:]
-    assert main.mount_web(main.app, tmp_path / "missing") is False
+        main.app.router.routes[:] = saved
 
 def test_cors_only_for_listed_origin():
     from fastapi import FastAPI
