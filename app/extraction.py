@@ -42,7 +42,9 @@ def decode_and_validate(image_b64: str, mime: str) -> bytes:
     return raw
 
 def extract_image(raw: bytes, mime: str) -> ImageFacts | None:
-    return llm.run_with_deadline(lambda: _extract_image(raw, mime), "EXTRACT_TIMEOUT_S", 30, "image extraction")
+    if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")):
+        llm.mark("extraction", "off"); return None
+    return llm.run_with_deadline(lambda: _extract_image(raw, mime), "EXTRACT_TIMEOUT_S", 30, "image extraction", "extraction")
 
 def _extract_image(raw: bytes, mime: str) -> ImageFacts | None:
     if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")):

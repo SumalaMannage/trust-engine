@@ -36,6 +36,13 @@ RULES: dict[str, tuple[S, int, G, str]] = {
     "SLIP_ARITHMETIC":      (S.high,     30, G.pressure,  "Amounts on the slip do not add up"),
     "SLIP_AMOUNT_MISMATCH": (S.high,     40, G.pressure,  "Slip amount differs from what you expected to receive"),
     "SLIP_NOT_PROOF":       (S.info,      0, G.none,      "A slip image is not proof that money arrived"),
+    "ADVANCE_FEE":          (S.high,     25, G.pressure,  "Asks for a fee before delivering what was promised"),
+    "PAID_CLAIM_PRESSURE":  (S.high,     25, G.pressure,  "Says payment was sent and pushes you to hand over goods before you can check"),
+    "CLICKBAIT_LINK":       (S.high,     25, G.lure,      "Curiosity bait with a link (for example 'is this you?')"),
+    "CTX_UNKNOWN_BILLER":   (S.medium,   20, G.pressure,  "Invoice or renewal notice from someone not in your records"),
+    "CTX_UNKNOWN_BILLER_ACCOUNT": (S.high, 25, G.pressure, "Invoice with new payment account details from someone not in your records"),
+    "IMAGE_NOT_CHECKED":    (S.medium,   25, G.lure,      "Image checking is switched off on this server, so the image was not checked"),
+    "QR_PAYMENT_TRICK":     (S.high,     25, G.pressure,  "Asks you to scan a code to 'receive' or 'confirm' a payment"),
     "UNTRACEABLE_PAYMENT":  (S.high,     30, G.pressure,  "Asks for a payment method that is hard to trace or reverse"),
     "AI_ANALYST_FINDING":   (S.medium,   10, G.lure,      "AI analyst noticed a scam tactic"),
     "AI_OBSERVED_CUE":      (S.medium,   15, G.lure,      "The AI noticed a warning sign in the image"),
@@ -83,8 +90,19 @@ ENTER_CODE = re.compile(r"enter (this|the|your|that) (\w+ )?code", re.I)
 INSTALLER = re.compile(r"(update (adobe|reader|acrobat|your viewer)|install (to|the|a|our) [\w ]{0,25}(join|view|open|meeting|viewer|plugin)|download (to|the) (view|open|join)|plugin required|viewer (is )?(outdated|required)|update required to (view|open))", re.I)
 BANK_CHANGE = re.compile(r"((changed|new|updated|change of) (our )?(bank|account)|bank (details|account)( has| have)? (changed|updated)|use (this|the) new account)", re.I)
 CHANNEL = re.compile(r"((continue|chat|talk|message|text|reach) (me )?(on|via|through) (whatsapp|telegram|signal)|add me on (whatsapp|telegram|signal))", re.I)
-OVERPAY = re.compile(r"((sent|paid|transferred) (you )?(too much|extra|more than)|send (back|the difference)|refund (me )?the (difference|balance|extra))", re.I)
+OVERPAY = re.compile(r"((sent|paid|transferred) (you )?(too much|extra|more than)|send (back|the difference)|refund (me )?the (difference|balance|extra)|forward (the )?(balance|difference|extra|remainder)|(slightly |bit )?(higher|larger|bigger) amount|pass (on )?the (balance|difference|extra))", re.I)
 UNTRACEABLE = re.compile(r"(pay|send|transfer|deposit|buy|purchase|via|through|using|use|cash)\W+(?:\w+\W+){0,4}(western union|moneygram|gift ?cards?|itunes cards?|google play cards?|bitcoin|\bbtc\b|usdt|crypto(?:currency)?|prepaid cards?)", re.I)
+ADVANCE_FEE = re.compile(r"\b(registration|processing|release|clearance|customs|activation|training|booking|advance)\s+(fee|fees|charge|charges|amount|payment|deposit)\b|\bsecurity deposit\b", re.I)
+PAY_VERB = re.compile(r"\b(pay|clear|send|settle|deposit|transfer|remit|submit)\b", re.I)
+SIGNIN_TO_VIEW = re.compile(r"\b(open|view|see|access|download|review)\b[^.\n]{0,60}\b(sign|log) ?in\b|\b(sign|log) ?in (with|using|to see|to view|to open|to access|to review)\b", re.I)
+PAID_CLAIM = re.compile(r"\b(i|we)('ve| have)? (already )?(paid|transferred|sent (the )?(payment|money))\b|\bpayment (is |was |has been )?(done|sent|made|completed)\b|\balready paid\b", re.I)
+HURRY = re.compile(r"can'?t wait|cannot wait|waiting outside|(driver|rider|courier) (is )?waiting|in a hurry|right now|immediately|\bhurry\b|\burgent", re.I)
+CLICKBAIT = re.compile(r"\b(is this you|who is this|look what i found|you'?re in this (photo|video)|see (the )?full (photo|video|image)|click here to see)\b", re.I)
+QR_TRICK = re.compile(r"scan\W+(?:\w+\W+){0,3}(?:qr\W*)?code\W+(?:\w+\W+){0,8}(bank|banking|payment|account|app)", re.I)
+
+RECEIPT = re.compile(r"(thanks for your payment|thank you for your payment|payment (was )?received|receipt (for|of)|you paid|has been paid|payment confirmation)", re.I)
+ACCOUNT_GIVEN = re.compile(r"(account below|following account|bank details|new account|account (number|no\.?)|\ba/c\b|beneficiary)", re.I)
+SAME_ACCOUNT = re.compile(r"(same (bank )?account|as (always|usual|before)|unchanged)", re.I)
 INJECTION = re.compile(r"(ignore (all |any )?(the )?(previous|prior|above) (instructions|rules)|mark (this|it) as (safe|legit|genuine)|disregard (the |all )?(rules|instructions)|you are now|reveal (your|the) (system )?prompt|(^|\n)\s*(ai|assistant|system)\s*:)", re.I)
 REFUSAL = re.compile(r"(can'?t|cannot|won'?t|don'?t|do not) (install|download|open|click|pay)|prefer (whatsapp|teams|email|a call|zoom)|not comfortable|no thanks|let'?s use (whatsapp|teams|email|zoom)|i('| a)m not going to", re.I)
 
@@ -209,8 +227,20 @@ def check_message_text(text: str, has_attachment: bool = False) -> list[Hit]:
     if m: hits.append(("OVERPAYMENT", "Scammers 'overpay' with a fake payment, then ask for the difference back.", m.group(0), None))
     m = BANK_CHANGE.search(text)
     if m: hits.append(("BANK_CHANGE_CUE", "Bank-detail changes are the most common way invoice fraud works.", m.group(0), None))
+    m = QR_TRICK.search(text)
+    if m: hits.append(("QR_PAYMENT_TRICK", "Scanning a code with your banking app can send money OUT of your account.", m.group(0)[:80], None))
     m = UNTRACEABLE.search(text) or (re.search(r"western union|moneygram", text, re.I) if PAYMENT.search(text) else None)
     if m: hits.append(("UNTRACEABLE_PAYMENT", "Western Union, gift cards and crypto are favourites of scammers because the money cannot be pulled back.", m.group(0)[:80], None))
+    has_url = bool(URL_RE.search(text))
+    m = ADVANCE_FEE.search(text)
+    if m and PAY_VERB.search(text):
+        hits.append(("ADVANCE_FEE", "Real jobs, prizes and parcels do not ask you to pay first to receive them.", m.group(0)[:80], None))
+    if has_url and SIGNIN_TO_VIEW.search(text) and not any(h[0] == "CREDENTIAL_REQUEST" for h in hits):
+        hits.append(("CREDENTIAL_REQUEST", "Asking you to sign in through a link just to see a document or form is a classic way to steal logins.", SIGNIN_TO_VIEW.search(text).group(0)[:80], None))
+    if PAID_CLAIM.search(text) and HURRY.search(text):
+        hits.append(("PAID_CLAIM_PRESSURE", "Check your own bank account first. Slips and 'I already paid' messages can be faked.", HURRY.search(text).group(0)[:80], None))
+    if has_url and CLICKBAIT.search(text):
+        hits.append(("CLICKBAIT_LINK", "Messages that tease a photo or video to get a click are a common trap.", CLICKBAIT.search(text).group(0)[:80], None))
     dl = DEVICE_LOGIN.search(text)
     if dl and (ENTER_CODE.search(text) or re.search(r"device ?code|\b[A-Z0-9]{3,5}-[A-Z0-9]{3,5}\b", text)):
         hits.append(("DEVICE_CODE_LURE", "Entering a code someone else gives you on a real login page can hand them access to your account.", dl.group(0), None))

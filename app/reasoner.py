@@ -48,7 +48,7 @@ def template_explanation(es: EvidenceSet, state: TrustState) -> AIExplanation:
                              explanation="No red flags were found in what we could read. " + ("; ".join(es.positives[:3]) + ". " if es.positives else "") + "This does not mean the message or sender is genuine.",
                              actions=["If money or goods are involved, still confirm in your own banking app before releasing anything."],
                              cited_evidence_ids=[])
-    head = "STOP: do not open, click or pay" if state == TrustState.STOP else "Verify before you act"
+    head = "STOP: do not open, click or pay" if state == TrustState.STOP else "Check before you act"
     why = " ".join(f"{e.title}." + (f" ({e.detail})" if e.detail else "") for e in top)
     if es.escalation_detected: why += " The sender pushed harder after you declined, which is a common scam pattern."
     actions = list(STAGE_ACTIONS.get(es.kill_chain_stage, []))
@@ -65,7 +65,9 @@ def _guard(exp: AIExplanation, es: EvidenceSet, state: TrustState) -> bool:
     return True
 
 def _gemini(es: EvidenceSet, state: TrustState, req: CheckRequest) -> AIExplanation | None:
-    return llm.run_with_deadline(lambda: _gemini_call(es, state, req), "EXPLAIN_TIMEOUT_S", 15, "explanation")
+    if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")):
+        llm.mark("explanation", "off"); return None
+    return llm.run_with_deadline(lambda: _gemini_call(es, state, req), "EXPLAIN_TIMEOUT_S", 15, "explanation", "explanation")
 
 def _gemini_call(es: EvidenceSet, state: TrustState, req: CheckRequest) -> AIExplanation | None:
     if not (MODEL and os.getenv("GOOGLE_CLOUD_PROJECT")): return None
