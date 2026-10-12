@@ -169,6 +169,10 @@ export function validateThread(items: DraftItem[]): DraftErrors {
   if (!filled.some((i) => i.direction === "inbound")) {
     errors.form = "Add at least one item from them: a message, screenshot, link or file details.";
   }
+  const images = items.filter((i) => i.kind === "image").length;
+  if (images > LIMITS.images) {
+    errors.form = `You can add up to ${LIMITS.images} images to one check. Remove ${images - LIMITS.images} before checking.`;
+  }
   if (items.length > LIMITS.threadItems) {
     errors.form = `This check accepts up to ${LIMITS.threadItems} items. Remove an item before checking.`;
   }

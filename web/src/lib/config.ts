@@ -3,8 +3,8 @@
 const DEV_API = process.env.NODE_ENV === "development" ? "http://localhost:8000" : "";
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? DEV_API).replace(/\/+$/, "");
 
-// Only one profile exists on the backend for now.
-export const BUSINESS_ID = "demo_bakery";
+// Profiles live in data/profile_*.json on the backend.
+export const BUSINESS_ID = "demo_shop";   // matches the designs: ABC Flour + Cake Box Supply
 export const BUSINESS_LABEL = "Demo Bakery";
 export const IS_DEMO = BUSINESS_ID.startsWith("demo");
 
@@ -15,6 +15,7 @@ export const SLOW_CHECK_AFTER_MS = 20_000;   // "Still checking · over 20 secon
 // Backend limits (app/schemas.py).
 export const LIMITS = {
   threadItems: 20,
+  images: 4,                // MAX_IMAGES on the backend
   messageChars: 5_000,
   urlChars: 2_048,
   fileNameChars: 255,

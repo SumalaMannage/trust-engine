@@ -1,5 +1,5 @@
 /*
- * API contract, mirrored by hand from app/schemas.py (backend commit 8dfa7e2).
+ * API contract, mirrored by hand from app/schemas.py (backend commit 5ad906f).
  * Once the backend runs locally, regenerate and compare:
  *   npx openapi-typescript http://localhost:8000/openapi.json -o src/lib/api/schema.gen.ts
  */
@@ -83,6 +83,14 @@ export interface ImageRead {
   text_excerpt: string;
 }
 
+/** Did each Gemini step run? "off" = not configured on the server, "skipped" = not needed for this check. */
+export type AIStep = "ok" | "off" | "timeout" | "error" | "skipped";
+export interface AIStatus {
+  extraction: AIStep;
+  analyst: AIStep;
+  explanation: AIStep;
+}
+
 export interface TrustDecision {
   state: TrustState;
   score: number;
@@ -97,6 +105,7 @@ export interface TrustDecision {
   explanation_source: "gemini" | "template";
   image_reads: ImageRead[];
   disclaimer: string;
+  ai_status?: AIStatus;               // added in backend 5ad906f
 }
 
 // ---------- business view (GET /v1/business/{id}) ----------

@@ -31,6 +31,8 @@ export function CheckScreen() {
   const [pickFor, setPickFor] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const atLimit = items.length >= LIMITS.threadItems;
+  const imageCount = items.filter((i) => i.kind === "image").length;
+  const imagesFull = imageCount >= LIMITS.images;
   const blocked = submitted && Object.keys(errors).length > 0;
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -42,7 +44,7 @@ export function CheckScreen() {
   }
 
   function add(kind: DraftKind) {
-    if (atLimit) return;
+    if (atLimit || (kind === "image" && imagesFull)) return;
     const item = newItem(kind, items.at(-1));
     update([...items, item]);
     if (kind === "image") setPickFor(item.id);
@@ -157,32 +159,40 @@ export function CheckScreen() {
               />
             ))}
           </ol>
-          {items.length === 0 && <p className={styles.empty}>Your thread is empty. Add the first message, screenshot, link or file details below.</p>}
+          {items.length === 0 && <p className={styles.empty}>Your thread is empty. Use the bar at the bottom to add the first message, screenshot, link or file details.</p>}
         </section>
 
-        <section className={styles.section} aria-labelledby="add-title">
-          <div>
-            <h2 id="add-title" className={styles.subTitle}>Add in the order they happened</h2>
-            <p className={styles.small}>{atLimit ? `Your thread has ${LIMITS.threadItems} items. Remove an item before adding another.` : `1–${LIMITS.threadItems} overall items.`}</p>
-          </div>
-          <div className={styles.addGrid}>
-            <Button variant="secondary" icon={<ImagePlus aria-hidden size={20} />} onClick={() => add("image")} disabled={atLimit}>Add screenshot or image</Button>
-            <Button variant="secondary" icon={<MessageSquarePlus aria-hidden size={20} />} onClick={() => add("message")} disabled={atLimit}>Add message</Button>
-            <Button variant="secondary" icon={<Link2 aria-hidden size={20} />} onClick={() => add("link")} disabled={atLimit}>Add link</Button>
-            <Button variant="secondary" icon={<Paperclip aria-hidden size={20} />} onClick={() => add("file")} disabled={atLimit}>Add file details</Button>
-          </div>
-          <p className={styles.small}>File details check only filename, type and size. File content stays on your device; it is not uploaded or read.</p>
-        </section>
-
-        <div className={styles.submit} id="check-errors">
-          <p className={styles.small}>Remove passwords and PINs before checking. Only the content you choose to add is checked.</p>
+        <div className={styles.notes} id="check-errors">
+          <p className={styles.small}>Add items in the order they happened. File details check only filename, type and size; file content stays on your device.</p>
+          <p className={styles.small}>Remove passwords and PINs before checking. We send the complete thread; text takes a few seconds, images can take longer.</p>
           {errors.form && <Banner tone="danger" icon="alert" title={errors.form} />}
           {blocked && !errors.form && <Banner tone="danger" icon="alert" title={`${plural(Object.keys(errors).length, "field")} need attention before checking.`} />}
-          <Button type="button" fullWidth icon={<ShieldCheck aria-hidden size={20} />} onClick={submit} disabled={blocked}>
+        </div>
+
+        {/* Pinned to the bottom of the screen while the thread scrolls, so adding and checking never need a scroll. */}
+        <section className={styles.actionBar} aria-labelledby="add-title">
+          <p id="add-title" className={styles.barMeta}>
+            <span className={styles.barTitle}>Add next</span>
+            <span>{items.length}/{LIMITS.threadItems} items · {imageCount}/{LIMITS.images} images</span>
+          </p>
+          <div className={styles.addRow}>
+            <button type="button" className={styles.addButton} onClick={() => add("image")} disabled={atLimit || imagesFull} aria-label="Add screenshot or image">
+              <ImagePlus aria-hidden size={20} /><span>Screenshot</span>
+            </button>
+            <button type="button" className={styles.addButton} onClick={() => add("message")} disabled={atLimit} aria-label="Add message">
+              <MessageSquarePlus aria-hidden size={20} /><span>Message</span>
+            </button>
+            <button type="button" className={styles.addButton} onClick={() => add("link")} disabled={atLimit} aria-label="Add link">
+              <Link2 aria-hidden size={20} /><span>Link</span>
+            </button>
+            <button type="button" className={styles.addButton} onClick={() => add("file")} disabled={atLimit} aria-label="Add file details">
+              <Paperclip aria-hidden size={20} /><span>File details</span>
+            </button>
+          </div>
+          <Button type="button" fullWidth icon={<ShieldCheck aria-hidden size={20} />} onClick={submit} disabled={blocked} className={styles.checkButton}>
             {blocked ? "Check unavailable" : "Check conversation"}
           </Button>
-          <p className={styles.small}>We send the complete thread for this check. Text can take several seconds; image checks can take much longer.</p>
-        </div>
+        </section>
       </div>
 
       <div className={styles.aside}>
@@ -197,7 +207,7 @@ export function CheckScreen() {
           <p>Use screenshots of the relevant pages from a trusted, already-open viewer or message, or ask the sender for screenshots.</p>
           <p className={styles.small}>Never open an unknown or suspicious file just to gather details.</p>
           <div className={styles.cardActions}>
-            <Button variant="secondary" fullWidth icon={<ImagePlus aria-hidden size={20} />} onClick={() => add("image")} disabled={atLimit}>Use screenshots instead</Button>
+            <Button variant="secondary" fullWidth icon={<ImagePlus aria-hidden size={20} />} onClick={() => add("image")} disabled={atLimit || imagesFull}>Use screenshots instead</Button>
           </div>
           <p><strong>Check a file name without opening it.</strong> Only filename, type and size are checked. File contents stay on your device.</p>
           <div className={styles.cardActions}>

@@ -2,7 +2,7 @@ import { newItem, type DraftItem, type FileItem, type MessageItem } from "@/lib/
 import type { Channel, Direction } from "@/lib/api/types";
 
 /*
- * Demo scenarios for testing. Each matches the demo_bakery profile in data/profile_demo_bakery.json.
+ * Demo scenarios for testing. Each matches the demo_shop profile in data/profile_demo_shop.json.
  * Verdicts come from the backend; these only fill in the thread.
  */
 
@@ -50,7 +50,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
     title: "Ordinary supplier message",
     description: "A routine invoice; confirm payments independently.",
     build: () => [
-      msg("inbound", "email", "Your usual flour order is ready. Invoice 4471 is Rs 85,000. Please use the existing account ending 8231.", {
+      msg("inbound", "email", "Your usual flour order is ready. Invoice 4471 is Rs 18,000. Please use the existing account ending 8231.", {
         sender: "ABC Flour <accounts@abcflour.example>",
       }),
       msg("outbound", "email", "Thank you. I'll confirm the payee in my banking app before paying."),

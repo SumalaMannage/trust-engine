@@ -35,6 +35,11 @@ interface ValidationIssue { loc?: (string | number)[]; msg?: string }
 function parse422(body: unknown): { message: string; position?: number; field?: string } {
   const detail = body && typeof body === "object" && "detail" in body ? (body as { detail: unknown }).detail : null;
   if (typeof detail === "string") return { message: detail, field: /image/i.test(detail) ? "image_b64" : undefined };
+  // Image errors: {detail: {message, position}} (backend 5ad906f)
+  if (detail && typeof detail === "object" && !Array.isArray(detail) && "message" in detail) {
+    const d = detail as { message: string; position?: number };
+    return { message: d.message, position: typeof d.position === "number" ? d.position : undefined, field: /image/i.test(d.message) ? "image_b64" : undefined };
+  }
   if (Array.isArray(detail) && detail.length > 0) {
     const issue = detail[0] as ValidationIssue;
     const loc = issue.loc ?? [];

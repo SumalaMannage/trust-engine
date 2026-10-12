@@ -11,11 +11,20 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { ActionsList } from "@/components/result/ActionsList";
+import { CheckStatusCard } from "@/components/result/CheckStatusCard";
 import { EvidenceCard } from "@/components/result/EvidenceCard";
 import { ImageReadCard } from "@/components/result/ImageReadCard";
 import { SourceThread } from "@/components/result/SourceThread";
 import { VerdictCard } from "@/components/result/VerdictCard";
 import styles from "./ResultView.module.css";
+
+const NOT_CHECKED = new Set(["IMAGE_NOT_CHECKED", "IMAGE_UNREADABLE", "IMAGE_NOT_UNDERSTOOD"]);
+
+const EXPLANATION_REASON: Record<string, string> = {
+  off: "AI explanations are switched off on this server.",
+  timeout: "The AI explanation took too long.",
+  error: "The AI explanation could not be written.",
+};
 
 export function ResultView() {
   const router = useRouter();
@@ -43,7 +52,11 @@ export function ResultView() {
   }
 
   const { decision: d, source } = result;
-  const findings = sortEvidence(d.evidence.filter((e) => e.weight > 0));
+  // "Not checked" results are scored (an unchecked image is never safe) but are not scam patterns.
+  const notChecked = d.evidence.filter((e) => NOT_CHECKED.has(e.rule_id));
+  const findings = sortEvidence(d.evidence.filter((e) => e.weight > 0 && !NOT_CHECKED.has(e.rule_id)));
+  const explanationStep = d.ai_status?.explanation;
+  const templateUsed = explanationStep ? ["off", "timeout", "error"].includes(explanationStep) : d.explanation_source === "template";
   const advice = d.evidence.filter((e) => e.weight === 0);
   const injection = d.evidence.find((e) => e.rule_id === "INJECTION");
   const referenced = new Set(d.evidence.map((e) => e.thread_index).filter((i): i is number => i != null));
@@ -72,10 +85,22 @@ export function ResultView() {
             It is treated as untrusted message content, not an instruction.
           </Banner>
         )}
-        {d.explanation_source === "template" && d.state !== "SAFE" && (
+        {templateUsed && d.state !== "SAFE" && (
           <Banner tone="warning" title="Standard explanation used">
-            This result uses a standard explanation. Read the evidence and next steps; the verdict is unchanged.
+            {explanationStep ? `${EXPLANATION_REASON[explanationStep]} ` : ""}This result uses a standard explanation. Read the evidence and next steps; the verdict is unchanged.
           </Banner>
+        )}
+
+        {notChecked.length > 0 && (
+          <Card muted aria-labelledby="unchecked-title">
+            <h2 id="unchecked-title" className={styles.cardTitle}>What we couldn&apos;t check</h2>
+            <ul className={styles.plainList}>
+              {notChecked.map((e) => (
+                <li key={e.id}><strong>{locationLabel(e, source).split(" · ").slice(0, 2).join(" · ")}:</strong> {e.detail || e.title}</li>
+              ))}
+            </ul>
+            <p className={styles.small}>Anything we could not check adds caution to the result. It is never treated as safe.</p>
+          </Card>
         )}
 
         {d.image_reads.map((r) => <ImageReadCard key={r.index} read={r} source={source} />)}
@@ -98,6 +123,8 @@ export function ResultView() {
           </Card>
         )}
 
+        {d.ai_status && <CheckStatusCard status={d.ai_status} />}
+
         <section className={styles.section} aria-labelledby="findings-title">
           <h2 id="findings-title" className={styles.sectionTitle}>
             {findings.length > 0 ? `Why this needs attention · ${plural(findings.length, "finding")}` : "Detailed evidence · 0 findings"}
@@ -105,7 +132,7 @@ export function ResultView() {
           <p className={styles.small}>Evidence is ordered by severity, then weight. The verdict is supplied by code; AI only contributes bounded observations and explanation.</p>
           {findings.length === 0 ? (
             <Card>
-              <p>No scored red flags were found in this thread. This does not establish that the sender or payment is genuine.</p>
+              <p>{notChecked.length > 0 ? "No scam patterns were found in what we could check." : "No scored red flags were found in this thread."} This does not establish that the sender or payment is genuine.</p>
             </Card>
           ) : (
             findings.map((e) => <EvidenceCard key={e.id} evidence={e} location={locationLabel(e, source)} />)
